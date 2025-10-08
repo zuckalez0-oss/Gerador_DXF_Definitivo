@@ -46,6 +46,7 @@ class CuttingPlanWidget(QWidget):
             
             # Posições e dimensões escaladas
             rect_x = int(offset_x + x * scale)
+            # A coordenada Y já vem ajustada para a origem no canto superior esquerdo.
             rect_y = int(offset_y + y * scale)
             rect_w = int(w * scale)
             rect_h = int(h * scale)

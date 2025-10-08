@@ -55,7 +55,12 @@ def calcular_plano_de_corte(chapa_largura, chapa_altura, pecas):
                 pecas_contagem[tipo_key] = pecas_contagem.get(tipo_key, 0) + 1
                 
                 plano_de_corte.append({
-                    "x": retangulo.x, "y": retangulo.y,
+                    "x": retangulo.x, 
+                    # Inverte a coordenada Y para que a origem (0,0) seja no canto SUPERIOR esquerdo.
+                    # É crucial usar retangulo.height aqui, pois a peça pode ter sido rotacionada
+                    # pela biblioteca de empacotamento, e precisamos da sua altura *final* no plano.
+                    "y": chapa_altura - retangulo.y - retangulo.height,
+                    # As dimensões são as do retângulo no plano, que podem estar trocadas se houve rotação.
                     "largura": retangulo.width, "altura": retangulo.height,
                     "rid": retangulo.rid,
                     "tipo_largura": id_peca_map[retangulo.rid]['largura'],

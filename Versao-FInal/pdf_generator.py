@@ -12,6 +12,10 @@ MARGEM_GERAL = 15 * mm
 HEADER_AREA_ALTURA = 25 * mm
 FOOTER_AREA_ALTURA = 25 * mm 
 
+# FATOR DE ESCALA PARA FONTES (para facilitar futuras manutenções)
+# Aumenta o tamanho de todas as fontes nos desenhos técnicos em 20%.
+FONT_SCALE_FACTOR = 1.2
+
 # =============================================================================
 # FUNÇÕES UTILITÁRIAS E DE DESENHO DE COMPONENTES
 # Estas devem ser definidas ANTES das funções que as usam.
@@ -26,7 +30,7 @@ def formatar_numero(valor):
     return str(valor).replace('.', ',')
 
 def desenhar_cabecalho(c, nome_arquivo):
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont("Helvetica-Bold", 14 * FONT_SCALE_FACTOR)
     y_pos_texto = PAGE_HEIGHT - HEADER_AREA_ALTURA + (10 * mm)
     c.drawCentredString(PAGE_WIDTH / 2, y_pos_texto, f"Desenho da Peça: {nome_arquivo}")
     y_pos_linha = PAGE_HEIGHT - HEADER_AREA_ALTURA
@@ -43,29 +47,29 @@ def desenhar_rodape_aprimorado(c, row):
     c.line(coluna2_x, y_rodape, coluna2_x, y_rodape + altura_bloco)
     c.line(coluna3_x, y_rodape, coluna3_x, y_rodape + altura_bloco)
     
-    y_titulo, y_valor = y_rodape + altura_bloco - 4*mm, y_rodape + 4*mm
+    y_titulo, y_valor = y_rodape + altura_bloco - 4.5*mm, y_rodape + 3.5*mm
     
-    c.setFont("Helvetica", 7)
+    c.setFont("Helvetica", 7 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna1_x + (coluna2_x - coluna1_x)/2, y_titulo, "NOME DA PEÇA / IDENTIFICADOR")
-    c.setFont("Helvetica-Bold", 10)
+    c.setFont("Helvetica-Bold", 10 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna1_x + (coluna2_x - coluna1_x)/2, y_valor, str(row.get('nome_arquivo', 'N/A')))
     
-    c.setFont("Helvetica", 7)
+    c.setFont("Helvetica", 7 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna2_x + (coluna3_x - coluna2_x)/2, y_titulo, "ESPESSURA")
-    c.setFont("Helvetica-Bold", 10)
+    c.setFont("Helvetica-Bold", 10 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna2_x + (coluna3_x - coluna2_x)/2, y_valor, f"{formatar_numero(row.get('espessura', 0))} mm")
     
-    c.setFont("Helvetica", 7)
+    c.setFont("Helvetica", 7 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna3_x + (PAGE_WIDTH - MARGEM_GERAL - coluna3_x)/2, y_titulo, "QUANTIDADE")
-    c.setFont("Helvetica-Bold", 10)
+    c.setFont("Helvetica-Bold", 10 * FONT_SCALE_FACTOR)
     c.drawCentredString(coluna3_x + (PAGE_WIDTH - MARGEM_GERAL - coluna3_x)/2, y_valor, formatar_numero(row.get('qtd', 0)))
 
 def desenhar_erro_dados(c, forma):
-    c.setFont("Helvetica-Bold", 14)
+    c.setFont("Helvetica-Bold", 14 * FONT_SCALE_FACTOR)
     c.drawCentredString(A4[0]/2, A4[1]/2, f"Dados inválidos para a forma: '{forma}'")
 
 def desenhar_cota_horizontal(c, x1, x2, y, texto):
-    FONT_NAME, FONT_SIZE = "Helvetica", 10
+    FONT_NAME, FONT_SIZE = "Helvetica", 10 * FONT_SCALE_FACTOR
     c.setFont(FONT_NAME, FONT_SIZE)
     c.line(x1, y, x2, y)
     tick_len = 2 * mm
@@ -80,7 +84,7 @@ def desenhar_cota_horizontal(c, x1, x2, y, texto):
     c.drawCentredString(centro_x, y_texto, texto)
 
 def desenhar_cota_vertical(c, y1, y2, x, texto):
-    FONT_NAME, FONT_SIZE = "Helvetica", 10
+    FONT_NAME, FONT_SIZE = "Helvetica", 10 * FONT_SCALE_FACTOR
     c.setFont(FONT_NAME, FONT_SIZE)
     c.line(x, y1, x, y2)
     tick_len = 2 * mm
@@ -99,9 +103,9 @@ def desenhar_cota_vertical(c, y1, y2, x, texto):
 
 def desenhar_cota_diametro_furo(c, x, y, raio, diametro_real):
     c.saveState()
-    c.setFont("Helvetica", 10)
+    c.setFont("Helvetica", 10 * FONT_SCALE_FACTOR)
     texto = f"Ø {formatar_numero(diametro_real)}"
-    largura_texto = c.stringWidth(texto, "Helvetica", 10)
+    largura_texto = c.stringWidth(texto, "Helvetica", 10 * FONT_SCALE_FACTOR)
     p_borda_x, p_borda_y = x + raio * 0.7071, y + raio * 0.7071 # Ponto a 45 graus na borda do círculo
     p_meio_x, p_meio_y = p_borda_x + 4 * mm, p_borda_y + 4 * mm
     p_final_x = p_meio_x + largura_texto + 2*mm
@@ -296,10 +300,12 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
 
     # 2. Desenha as peças
     for peca in plano:
-        rect_x = x0 + peca['x'] * escala
-        rect_y = y0 + peca['y'] * escala
         rect_w = peca['largura'] * escala
         rect_h = peca['altura'] * escala
+        rect_x = x0 + peca['x'] * escala
+        # A coordenada Y da peça já está invertida (origem no topo).
+        # Para desenhar no PDF (origem embaixo), calculamos o canto inferior esquerdo.
+        rect_y = (y0 + dh) - (peca['y'] * escala) - rect_h
         c.setFillColorRGB(0.66, 0.26, 0.26) # Vermelho escuro, igual ao da UI
         c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
 
@@ -326,16 +332,21 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
     # Escala e centralização
     escala = min(area_desenho_w / chapa_largura, area_desenho_h / chapa_altura) * 0.95
     dw, dh = chapa_largura * escala, chapa_altura * escala
-    x0 = MARGEM_GERAL + (area_desenho_w - dw) / 2
-    y0 = y_cursor - area_desenho_h + (area_desenho_h - dh) / 2
+    
+    # A coordenada Y do desenho começa no topo da área de desenho
+    x_origem_desenho = MARGEM_GERAL + (area_desenho_w - dw) / 2
+    y_origem_desenho = y_cursor - (area_desenho_h - dh) / 2
 
     # Desenha chapa e peças
     c.setStrokeColorRGB(0.8, 0.8, 0.8)
-    c.rect(x0, y0, dw, dh, stroke=1, fill=0)
+    # O rect é desenhado de (x, y) com largura e altura, então o y precisa ser o canto inferior esquerdo.
+    c.rect(x_origem_desenho, y_origem_desenho - dh, dw, dh, stroke=1, fill=0)
     c.setStrokeColorRGB(0, 0, 0)
     c.setFillColorRGB(0.66, 0.26, 0.26)
     for peca in plano_info['plano']:
-        c.rect(x0 + peca['x'] * escala, y0 + peca['y'] * escala, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
+        # A coordenada Y da peça já está invertida. Para desenhar, precisamos do canto inferior esquerdo do retângulo.
+        rect_y_inferior = y_origem_desenho - (peca['y'] * escala) - (peca['altura'] * escala)
+        c.rect(x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
 
     # Área da lista de peças (à direita)
     x_lista = (PAGE_WIDTH / 2) + (MARGEM_GERAL / 2)
