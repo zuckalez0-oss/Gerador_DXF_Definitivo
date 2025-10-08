@@ -1,5 +1,7 @@
 # main.py
 
+from openpyxl.styles import PatternFill, Font
+from openpyxl import load_workbook
 import sys
 import os
 import json
@@ -17,6 +19,7 @@ from history_manager import HistoryManager
 from history_dialog import HistoryDialog
 from processing import ProcessThread
 from nesting_dialog import NestingDialog # Importa a nova classe do diálogo de nesting
+from calculo_cortes import calcular_plano_de_corte
 
 # =============================================================================
 # CLASSE PRINCIPAL DA INTERFACE GRÁFICA
@@ -336,6 +339,23 @@ class MainWindow(QMainWindow):
 
 
     def export_project_to_excel(self):
+        # --- INÍCIO DA NOVA LÓGICA DE EXPORTAÇÃO ---
+        # 1. Obter parâmetros para o cálculo de aproveitamento
+        chapa_largura_str, ok1 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Largura da Chapa (mm):", text="3000")
+        if not ok1: return
+        chapa_altura_str, ok2 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Altura da Chapa (mm):", text="1500")
+        if not ok2: return
+        offset_str, ok3 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Offset entre Peças (mm):", text="8")
+        if not ok3: return
+
+        try:
+            chapa_largura = float(chapa_largura_str)
+            chapa_altura = float(chapa_altura_str)
+            offset = float(offset_str)
+        except (ValueError, TypeError):
+            QMessageBox.critical(self, "Erro de Entrada", "Valores de chapa e offset devem ser numéricos.")
+            return
+
         project_number = self.projeto_input.text().strip()
         if not project_number:
             QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um novo projeto para poder exportá-lo.")
@@ -352,46 +372,160 @@ class MainWindow(QMainWindow):
         if not save_path:
             return
 
+        # Ativa a barra de progresso e desabilita botões
+        self.set_buttons_enabled_on_process(False)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setValue(0)
+        self.log_text.clear()
+        self.log_text.append("Iniciando exportação para Excel...")
+        QApplication.processEvents() # Força a atualização da UI
+
         try:
-            export_df = pd.DataFrame()
-            export_df['Numero do Projeto'] = [project_number] * len(combined_df)
-            export_df['Nome da Peça'] = combined_df['nome_arquivo']
-            export_df['Forma'] = combined_df['forma']
-            export_df['Espessura (mm)'] = combined_df['espessura']
-            export_df['Quantidade'] = combined_df['qtd']
-            export_df['Largura (mm)'] = combined_df['largura']
-            export_df['Altura (mm)'] = combined_df['altura']
-            export_df['Diâmetro (mm)'] = combined_df['diametro']
-            export_df['Base Triângulo (mm)'] = combined_df['rt_base']
-            export_df['Altura Triângulo (mm)'] = combined_df['rt_height']
-            export_df['Base Maior Trapézio (mm)'] = combined_df['trapezoid_large_base']
-            export_df['Base Menor Trapézio (mm)'] = combined_df['trapezoid_small_base']
-            export_df['Altura Trapézio (mm)'] = combined_df['trapezoid_height']
-            
-            furos_data = combined_df['furos'].fillna('[]').apply(
-                lambda f: f if isinstance(f, list) else json.loads(f.replace("'", "\""))
-            )
-            export_df['Quantidade de Furos'] = furos_data.apply(len)
-            
-            def get_unique_diameters(furos_list):
-                if not furos_list: return ""
-                diameters = sorted(list(set([f.get('diam', 0) for f in furos_list])))
-                return ", ".join(map(str, diameters))
+            template_path = 'CUSTO_PLASMA-LASER_V4_NOVA.xlsx' # Caminho para o template
+            if not os.path.exists(template_path):
+                QMessageBox.critical(self, "Template Não Encontrado", f"O arquivo modelo '{template_path}' não foi encontrado no diretório da aplicação.")
+                return
 
-            export_df['Diâmetros dos Furos (mm)'] = furos_data.apply(get_unique_diameters)
-            export_df['Detalhes dos Furos (JSON)'] = furos_data.apply(json.dumps)
-            
-            export_df.replace(0, pd.NA, inplace=True)
-            export_df.dropna(axis=1, how='all', inplace=True)
+            # Carrega o workbook e a planilha ativa
+            wb = load_workbook(template_path)
+            ws = wb.active
 
-            export_df.to_excel(save_path, index=False, engine='openpyxl')
+            # --- PARTE 1: Preencher a lista de peças (como antes) ---
+            self.log_text.append("Preenchendo lista de peças...")
+            QApplication.processEvents()
+
+            start_row = 1
+            while ws.cell(row=start_row, column=1).value is not None:
+                start_row += 1
+
+            total_pecas = len(combined_df)
+            for index, row_data in enumerate(combined_df.iterrows()):
+                row_data = row_data[1] # Acessa os dados da linha
+                current_row = start_row + index
+
+                # Coluna A: Número do Projeto
+                ws.cell(row=current_row, column=1, value=project_number)
+                # Coluna B: Nome da Peça
+                ws.cell(row=current_row, column=2, value=row_data.get('nome_arquivo', ''))
+                # Coluna C: Quantidade de Peças
+                ws.cell(row=current_row, column=3, value=row_data.get('qtd', 0))
+
+                # Coluna D: Forma (Abreviada)
+                # CORREÇÃO: Garante que 'forma' seja uma string antes de usar .lower()
+                forma = str(row_data.get('forma', '')).lower()
+                largura = row_data.get('largura', 0)
+                altura = row_data.get('altura', 0)
+                forma_map = {
+                    'circle': 'C',
+                    'trapezoid': 'TP',
+                    'right_triangle': 'T'
+                }
+                if forma == 'rectangle':
+                    forma_abreviada = 'Q' if largura == altura and largura > 0 else 'R'
+                else:
+                    forma_abreviada = forma_map.get(forma, '')
+                ws.cell(row=current_row, column=4, value=forma_abreviada)
+
+                # Coluna E: Quantidade de Furos
+                furos = row_data.get('furos', [])
+                num_furos = len(furos) if isinstance(furos, list) else 0
+                ws.cell(row=current_row, column=5, value=num_furos)
+                
+                # Coluna F: Diâmetro do Furo (primeiro furo, se houver)
+                diametro_furo = furos[0].get('diam', 0) if num_furos > 0 else 0
+                ws.cell(row=current_row, column=6, value=diametro_furo)
+
+                # Colunas G, H, I
+                ws.cell(row=current_row, column=7, value=row_data.get('espessura', 0)) # G: Espessura
+                ws.cell(row=current_row, column=8, value=largura)                      # H: Largura
+                ws.cell(row=current_row, column=9, value=altura)                       # I: Altura
+
+                self.progress_bar.setValue(int(((index + 1) / (total_pecas * 2)) * 100))
+
+            # --- PARTE 2: Calcular e preencher o aproveitamento ---
+            self.log_text.append("Calculando aproveitamento de chapas...")
+            QApplication.processEvents()
+
+            rect_df = combined_df[combined_df['forma'] == 'rectangle'].copy()
+            rect_df['espessura'] = rect_df['espessura'].astype(float)
+            grouped = rect_df.groupby('espessura')
             
+            # Define a linha inicial para os dados de aproveitamento
+            current_row = 209
+            
+            # Cabeçalho da seção de aproveitamento
+            ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = wb.active['A1'].font.copy(bold=True, size=14)
+            current_row += 2
+
+            for espessura, group in grouped:
+                pecas_para_calcular = []
+                for _, row in group.iterrows():
+                    if row['largura'] > 0 and row['altura'] > 0:
+                        pecas_para_calcular.append({
+                            'largura': row['largura'] + offset,
+                            'altura': row['altura'] + offset,
+                            'quantidade': int(row['qtd'])
+                        })
+                
+                if not pecas_para_calcular: continue
+
+                resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
+
+                # Escreve o cabeçalho da espessura
+                ws.cell(row=current_row, column=1, value=f"Espessura: {espessura} mm").font = wb.active['A1'].font.copy(bold=True, size=12)
+                current_row += 1
+
+                # Calcula e escreve o peso
+                total_chapas_usadas = resultado['total_chapas']
+                # Formula: L(m) * A(m) * E(m) * densidade(ton/m^3) * 1000(kg/ton) * num_chapas
+                peso_kg = (chapa_largura/1000) * (chapa_altura/1000) * (espessura/1000) * 7.85 * 1000 * total_chapas_usadas
+                
+                ws.cell(row=current_row, column=1, value=f"Total de Chapas: {total_chapas_usadas}")
+                ws.cell(row=current_row, column=2, value=f"Aproveitamento: {resultado['aproveitamento_geral']}")
+                ws.cell(row=current_row, column=3, value=f"Peso Total Estimado: {peso_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
+                current_row += 2
+
+                # Escreve os detalhes de cada plano
+                for i, plano_info in enumerate(resultado['planos_unicos']):
+                    ws.cell(row=current_row, column=1, value=f"Plano de Corte {i+1} (Repetir {plano_info['repeticoes']}x)").font = wb.active['A1'].font.copy(italic=True)
+                    current_row += 1
+                    
+                    ws.cell(row=current_row, column=2, value="Peças neste plano:")
+                    current_row += 1
+
+                    for item in plano_info['resumo_pecas']:
+                        # Remove o offset do nome da peça para exibição
+                        dimensoes_sem_offset = item['tipo'].split('x')
+                        largura_real = float(dimensoes_sem_offset[0]) - offset
+                        altura_real = float(dimensoes_sem_offset[1]) - offset
+                        texto_peca = f"- {item['qtd']}x de {largura_real:.0f}x{altura_real:.0f} mm"
+                        ws.cell(row=current_row, column=3, value=texto_peca)
+                        current_row += 1
+                    current_row += 1 # Espaço extra entre os planos
+                
+                # MELHORIA: Adiciona uma linha cinza mesclada como separador
+                ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
+                cell = ws.cell(row=current_row, column=1)
+                cell.fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
+                current_row += 2 # Espaço extra entre as espessuras
+                self.progress_bar.setValue(50 + int((current_row / 400) * 50)) # Simula progresso
+
+            self.log_text.append("Salvando arquivo Excel...")
+            QApplication.processEvents()
+
+            # Salva o arquivo preenchido no caminho escolhido pelo usuário
+            wb.save(save_path)
+            
+            self.progress_bar.setValue(100)
             self.log_text.append(f"Resumo do projeto salvo com sucesso em: {save_path}")
             QMessageBox.information(self, "Sucesso", f"O arquivo Excel foi salvo com sucesso em:\n{save_path}")
-
         except Exception as e:
             self.log_text.append(f"ERRO ao exportar para Excel: {e}")
             QMessageBox.critical(self, "Erro na Exportação", f"Ocorreu um erro ao salvar o arquivo:\n{e}")
+        finally:
+            # Reabilita os botões e esconde a barra de progresso ao final
+            self.set_buttons_enabled_on_process(True)
+            self.progress_bar.setVisible(False)
 
     def _clear_session(self, clear_project_number=False):
         fields_to_clear = [self.nome_input, self.espessura_input, self.qtd_input, self.largura_input, self.altura_input, self.diametro_input, self.rt_base_input, self.rt_height_input, self.trapezoid_large_base_input, self.trapezoid_small_base_input, self.trapezoid_height_input, self.rep_diam_input, self.rep_offset_input, self.diametro_furo_input, self.pos_x_input, self.pos_y_input]
