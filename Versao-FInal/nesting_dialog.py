@@ -1,10 +1,15 @@
 import sys
+import os
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QLineEdit, 
                              QPushButton, QDialogButtonBox, QMessageBox, 
-                             QGroupBox, QLabel, QWidget, QHBoxLayout, QScrollArea)
+                             QGroupBox, QLabel, QWidget, QHBoxLayout, QScrollArea,
+                             QFileDialog)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush
-
+# Importações para gerar PDF
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+import pdf_generator
 # Importe sua função de cálculo
 from calculo_cortes import calcular_plano_de_corte 
 
@@ -53,26 +58,44 @@ class CuttingPlanWidget(QWidget):
 class PlanVisualizationDialog(QDialog):
     def __init__(self, chapa_largura, chapa_altura, plano, parent=None):
         super().__init__(parent)
+        self.chapa_largura = chapa_largura
+        self.chapa_altura = chapa_altura
+        self.plano = plano
         self.setWindowTitle("Visualização Detalhada do Plano de Corte")
+        self.setMinimumSize(600, 800)
         
         layout = QVBoxLayout(self)
         cutting_widget = CuttingPlanWidget(chapa_largura, chapa_altura, plano)
         layout.addWidget(cutting_widget)
 
-        # Botões (opcional, como na sua imagem)
+        # Botões
         buttons_layout = QHBoxLayout()
-        # Aqui você poderia adicionar lógica para exportar
-        # btn_pdf = QPushButton("Exportar para PDF")
-        # btn_excel = QPushButton("Exportar para Excel")
-        # buttons_layout.addWidget(btn_pdf)
-        # buttons_layout.addWidget(btn_excel)
-        # layout.addLayout(buttons_layout)
+        btn_export_pdf = QPushButton("Exportar para PDF")
+        btn_export_pdf.clicked.connect(self.export_to_pdf)
+        
+        btn_close = QPushButton("Fechar")
+        btn_close.clicked.connect(self.accept)
+
+        buttons_layout.addWidget(btn_export_pdf)
+        buttons_layout.addStretch()
+        buttons_layout.addWidget(btn_close)
+        layout.addLayout(buttons_layout)
+
+    def export_to_pdf(self):
+        default_path = os.path.join(os.path.expanduser("~"), "Downloads", "Plano_de_Corte.pdf")
+        save_path, _ = QFileDialog.getSaveFileName(self, "Salvar PDF do Plano de Corte", default_path, "PDF Files (*.pdf)")
+        if save_path:
+            c = canvas.Canvas(save_path, pagesize=A4)
+            pdf_generator.gerar_pdf_plano_de_corte(c, self.chapa_largura, self.chapa_altura, self.plano)
+            c.save()
+            QMessageBox.information(self, "Sucesso", f"PDF do plano de corte salvo em:\n{save_path}")
 
 
 class NestingDialog(QDialog):
     def __init__(self, dataframe, parent=None):
         super().__init__(parent)
         self.df = dataframe
+        self.calculation_results = None # Armazena os resultados completos
         self.setWindowTitle("Cálculo de Aproveitamento de Chapa")
         self.setMinimumWidth(600)
 
@@ -91,10 +114,16 @@ class NestingDialog(QDialog):
         input_group.setLayout(form_layout)
         self.main_layout.addWidget(input_group)
         
-        # Botão para iniciar o cálculo
+        # Botões de Ação
+        action_layout = QHBoxLayout()
         self.calculate_btn = QPushButton("Calcular")
         self.calculate_btn.clicked.connect(self.run_calculation)
-        self.main_layout.addWidget(self.calculate_btn)
+        self.export_report_btn = QPushButton("Exportar Relatório PDF")
+        self.export_report_btn.clicked.connect(self.export_full_report_to_pdf)
+        self.export_report_btn.setEnabled(False) # Desabilitado até o cálculo ser feito
+        action_layout.addWidget(self.calculate_btn)
+        action_layout.addWidget(self.export_report_btn)
+        self.main_layout.addLayout(action_layout)
 
         # --- Área de Resultados ---
         results_group = QGroupBox("Resultados")
@@ -123,6 +152,9 @@ class NestingDialog(QDialog):
         # Limpa resultados anteriores
         for i in reversed(range(self.results_scroll_layout.count())): 
             self.results_scroll_layout.itemAt(i).widget().setParent(None)
+        
+        self.calculation_results = {} # Limpa e prepara para novos resultados
+        self.export_report_btn.setEnabled(False)
 
         # Filtra apenas peças retangulares e agrupa por espessura
         rect_df = self.df[self.df['forma'] == 'rectangle'].copy()
@@ -152,10 +184,27 @@ class NestingDialog(QDialog):
             try:
                 # Chama a função de cálculo importada
                 resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
+                self.calculation_results[espessura] = resultado # Armazena o resultado
                 self.display_results_for_thickness(espessura, resultado, chapa_largura, chapa_altura)
             except Exception as e:
                 QMessageBox.critical(self, f"Erro no Cálculo (Espessura {espessura}mm)", str(e))
+        
+        # Habilita o botão de exportar se houver resultados
+        if self.calculation_results:
+            self.export_report_btn.setEnabled(True)
 
+    def export_full_report_to_pdf(self):
+        if not self.calculation_results:
+            QMessageBox.warning(self, "Sem Dados", "Nenhum resultado de cálculo para exportar. Por favor, clique em 'Calcular' primeiro.")
+            return
+
+        default_path = os.path.join(os.path.expanduser("~"), "Downloads", "Relatorio_Aproveitamento.pdf")
+        save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Relatório de Aproveitamento", default_path, "PDF Files (*.pdf)")
+        if save_path:
+            c = canvas.Canvas(save_path, pagesize=A4)
+            pdf_generator.gerar_pdf_aproveitamento_completo(c, self.calculation_results, float(self.chapa_largura_input.text()), float(self.chapa_altura_input.text()))
+            c.save()
+            QMessageBox.information(self, "Sucesso", f"Relatório PDF salvo em:\n{save_path}")
 
     def display_results_for_thickness(self, espessura, resultado, chapa_w, chapa_h):
         # Cria um grupo para cada espessura

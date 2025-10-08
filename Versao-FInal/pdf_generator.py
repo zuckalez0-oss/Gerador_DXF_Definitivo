@@ -263,6 +263,153 @@ def desenhar_trapezio(c, row):
     c.line(p4[0], p4[1], x_cota_v-overshoot, p4[1])
     desenhar_cota_vertical(c, p1[1], p4[1], x_cota_v, formatar_numero(height))
 
+def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
+    """
+    Desenha um plano de corte (nesting) em uma página de PDF.
+    
+    :param c: O canvas do reportlab.
+    :param chapa_largura: Largura real da chapa.
+    :param chapa_altura: Altura real da chapa.
+    :param plano: Lista de dicionários de peças, cada um com 'x', 'y', 'largura', 'altura'.
+    """
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 20*mm, "Plano de Corte da Chapa")
+
+    max_w, max_h = PAGE_WIDTH - 2*MARGEM_GERAL, PAGE_HEIGHT - 40*mm # Mais espaço para título
+    dist_cota, overshoot = 8*mm, 2*mm
+    espaco_cota_x, espaco_cota_y = dist_cota, dist_cota
+
+    # Calcula a escala para caber na página
+    escala = min((max_w - espaco_cota_x) / chapa_largura, (max_h - espaco_cota_y) / chapa_altura) * 0.95
+    dw, dh = chapa_largura * escala, chapa_altura * escala
+    
+    # Centraliza o desenho
+    bloco_visual_width, bloco_visual_height = dw + espaco_cota_x, dh + espaco_cota_y
+    inicio_bloco_x = MARGEM_GERAL + (max_w - bloco_visual_width) / 2
+    inicio_bloco_y = MARGEM_GERAL + (max_h - bloco_visual_height) / 2
+    x0, y0 = inicio_bloco_x + espaco_cota_x, inicio_bloco_y + espaco_cota_y
+
+    # 1. Desenha a chapa
+    c.setStrokeColorRGB(0.8, 0.8, 0.8) # Cinza claro para a chapa
+    c.rect(x0, y0, dw, dh, stroke=1, fill=0)
+    c.setStrokeColorRGB(0, 0, 0) # Volta para preto
+
+    # 2. Desenha as peças
+    for peca in plano:
+        rect_x = x0 + peca['x'] * escala
+        rect_y = y0 + peca['y'] * escala
+        rect_w = peca['largura'] * escala
+        rect_h = peca['altura'] * escala
+        c.setFillColorRGB(0.66, 0.26, 0.26) # Vermelho escuro, igual ao da UI
+        c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
+
+    # 3. Desenha as cotas da chapa
+    y_cota_total = y0 - dist_cota
+    desenhar_cota_horizontal(c, x0, x0 + dw, y_cota_total, formatar_numero(chapa_largura))
+    x_cota_total = x0 - dist_cota
+    desenhar_cota_vertical(c, y0, y0 + dh, x_cota_total, formatar_numero(chapa_altura))
+
+def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, chapa_altura, plano_idx):
+    """
+    Função auxiliar para desenhar um único plano de corte com seus detalhes em uma área específica da página.
+    Retorna a posição Y final após o desenho.
+    """
+    c.setFont("Helvetica-Bold", 11)
+    titulo = f"Plano de Corte {plano_idx + 1} (Repetir {plano_info['repeticoes']}x)"
+    c.drawString(MARGEM_GERAL, y_start, titulo)
+    y_cursor = y_start - 5*mm
+
+    # Área de desenho do plano (à esquerda)
+    area_desenho_w = (PAGE_WIDTH / 2) - (1.5 * MARGEM_GERAL)
+    area_desenho_h = 100 * mm # Altura fixa para a visualização
+
+    # Escala e centralização
+    escala = min(area_desenho_w / chapa_largura, area_desenho_h / chapa_altura) * 0.95
+    dw, dh = chapa_largura * escala, chapa_altura * escala
+    x0 = MARGEM_GERAL + (area_desenho_w - dw) / 2
+    y0 = y_cursor - area_desenho_h + (area_desenho_h - dh) / 2
+
+    # Desenha chapa e peças
+    c.setStrokeColorRGB(0.8, 0.8, 0.8)
+    c.rect(x0, y0, dw, dh, stroke=1, fill=0)
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setFillColorRGB(0.66, 0.26, 0.26)
+    for peca in plano_info['plano']:
+        c.rect(x0 + peca['x'] * escala, y0 + peca['y'] * escala, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
+
+    # Área da lista de peças (à direita)
+    x_lista = (PAGE_WIDTH / 2) + (MARGEM_GERAL / 2)
+    y_lista = y_cursor
+    c.setFont("Helvetica-Bold", 9)
+    c.drawString(x_lista, y_lista, "Peças neste plano:")
+    y_lista -= 4*mm
+    c.setFont("Helvetica", 8)
+    for item in plano_info['resumo_pecas']:
+        # Verifica se precisa pular para a próxima linha na lista
+        if y_lista < (y_cursor - area_desenho_h + 5*mm):
+            c.drawString(x_lista, y_lista, "...")
+            break
+        texto_peca = f"- {item['qtd']}x de {item['tipo']} mm"
+        c.drawString(x_lista, y_lista, texto_peca)
+        y_lista -= 3.5*mm
+
+    return y_cursor - area_desenho_h - 5*mm # Retorna a nova posição Y
+
+def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, chapa_altura):
+    """
+    Gera um relatório PDF completo com todos os planos de corte para todas as espessuras.
+    """
+    c.setFont("Helvetica-Bold", 16)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - MARGEM_GERAL, "Relatório de Aproveitamento de Chapa")
+    c.setFont("Helvetica", 11)
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - MARGEM_GERAL - 6*mm, f"Dimensões da Chapa: {formatar_numero(chapa_largura)} x {formatar_numero(chapa_altura)} mm")
+
+    y_cursor = PAGE_HEIGHT - MARGEM_GERAL - 20*mm
+
+    for espessura, resultado in resultados_completos.items():
+        # Verifica se há espaço para o cabeçalho da espessura
+        if y_cursor < MARGEM_GERAL + 40*mm:
+            c.showPage()
+            y_cursor = PAGE_HEIGHT - MARGEM_GERAL
+
+        # Cabeçalho da Espessura
+        c.setStrokeColorRGB(0,0,0)
+        c.setFillColorRGB(0.9, 0.9, 0.9)
+        c.rect(MARGEM_GERAL, y_cursor - 5*mm, PAGE_WIDTH - 2*MARGEM_GERAL, 7*mm, stroke=1, fill=1)
+        c.setFillColorRGB(0,0,0)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(MARGEM_GERAL + 3*mm, y_cursor - 3.5*mm, f"Espessura: {espessura} mm")
+        y_cursor -= 8*mm
+
+        # Sumário da Espessura
+        c.setFont("Helvetica", 10)
+        sumario = f"Total de Chapas: {resultado['total_chapas']}   |   Aproveitamento Geral: {resultado['aproveitamento_geral']}"
+        c.drawString(MARGEM_GERAL, y_cursor, sumario)
+        y_cursor -= 10*mm
+
+        # Desenha cada plano de corte único
+        for i, plano_info in enumerate(resultado['planos_unicos']):
+            # Verifica se o plano cabe na página atual, se não, cria uma nova
+            altura_necessaria_plano = 115 * mm # Altura estimada para cada bloco de plano
+            if y_cursor < altura_necessaria_plano:
+                c.showPage()
+                y_cursor = PAGE_HEIGHT - MARGEM_GERAL
+                # Adiciona um cabeçalho de continuação
+                c.setFont("Helvetica-Bold", 12)
+                c.drawString(MARGEM_GERAL, y_cursor, f"Continuação - Espessura: {espessura} mm")
+                y_cursor -= 10*mm
+
+            y_cursor = _desenhar_plano_unico_com_detalhes(c, y_cursor, plano_info, chapa_largura, chapa_altura, i)
+            
+            # Linha separadora
+            if i < len(resultado['planos_unicos']) - 1:
+                c.setStrokeColorRGB(0.8, 0.8, 0.8)
+                c.line(MARGEM_GERAL, y_cursor, PAGE_WIDTH - MARGEM_GERAL, y_cursor)
+                y_cursor -= 5*mm
+
+        # Espaço antes da próxima espessura
+        y_cursor -= 10*mm
+
 # =============================================================================
 # FUNÇÃO PRINCIPAL DO MÓDULO (INTERFACE PÚBLICA)
 # Esta função chama as outras, por isso deve vir por último.
