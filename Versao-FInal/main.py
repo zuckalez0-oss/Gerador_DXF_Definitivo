@@ -366,7 +366,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para exportar.")
             return
 
-        default_filename = os.path.join(self.project_directory, f"Resumo_Projeto_{project_number}.xlsx")
+        default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V4_NOVA_{project_number}.xlsx")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Resumo do Projeto", default_filename, "Excel Files (*.xlsx)")
 
         if not save_path:
