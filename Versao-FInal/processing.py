@@ -16,12 +16,13 @@ class ProcessThread(QThread):
     progress_signal = pyqtSignal(int)
     finished_signal = pyqtSignal(bool, str)
 
-    def __init__(self, dataframe_to_process, generate_pdf=True, generate_dxf=True, project_directory="."):
+    def __init__(self, dataframe_to_process, generate_pdf=True, generate_dxf=True, project_directory=".", project_number=""):
         super().__init__()
         self.df = dataframe_to_process
         self.generate_pdf = generate_pdf
         self.generate_dxf = generate_dxf
         self.project_directory = project_directory
+        self.project_number = project_number
 
     def run(self):
         try:
@@ -42,7 +43,8 @@ class ProcessThread(QThread):
                 grouped = df_pdf.groupby('espessura')
 
                 for espessura, group in grouped:
-                    pdf_filename = os.path.join(pdf_output_dir, f"Desenhos_PDF_Espessura_{str(espessura).replace('.', '_')}mm.pdf")
+                    espessura_str = str(espessura).replace('.', '_')
+                    pdf_filename = os.path.join(pdf_output_dir, f"{self.project_number}_Desenhos_PDF_Espessura_{espessura_str}mm.pdf")
                     c = canvas.Canvas(pdf_filename, pagesize=A4)
                     for _, row in group.iterrows():
                         # Usa a função do módulo pdf_generator

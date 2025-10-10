@@ -984,5 +984,48 @@
                 "project_number": "1929"
             }
         ]
+    },
+    "1930": {
+        "project_number": "1930",
+        "save_date": "10/10/2025 16:34:01",
+        "pieces": [
+            {
+                "nome_arquivo": "1930_DES1858_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 6.0,
+                "largura": 300.0,
+                "altura": 300.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 285.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 285.0,
+                        "y": 285.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 285.0
+                    }
+                ],
+                "project_number": "1930"
+            }
+        ]
     }
 }

@@ -1,4 +1,4 @@
-# main.py
+# main.py (VERSÃO ATUALIZADA E COMPLETA)
 
 from openpyxl.styles import PatternFill, Font
 from openpyxl import load_workbook
@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QTextEdit, 
                              QFileDialog, QProgressBar, QMessageBox, QGroupBox,
                              QFormLayout, QLineEdit, QComboBox, QTableWidget, 
-                             QTableWidgetItem, QDialog, QInputDialog)
+                             QTableWidgetItem, QDialog, QInputDialog, QHeaderView)
 from PyQt5.QtCore import Qt
 
 # <<< IMPORTAÇÕES DAS CLASSES ENCAPSULADAS >>>
@@ -20,6 +20,212 @@ from history_dialog import HistoryDialog
 from processing import ProcessThread
 from nesting_dialog import NestingDialog # Importa a nova classe do diálogo de nesting
 from calculo_cortes import calcular_plano_de_corte
+
+# =============================================================================
+# ESTILO VISUAL DA APLICAÇÃO (QSS - Qt StyleSheet)
+# =============================================================================
+INOVA_PROCESS_STYLE = """
+/* ================================================================================
+    Estilo Dark Theme para INOVA PROCESS
+    - Paleta de cores baseada em tons de azul, ciano e cinza para um visual
+      tecnológico e profissional.
+    - Foco em legibilidade e usabilidade dos componentes.
+================================================================================
+*/
+
+/* Estilo Geral da Janela e Widgets */
+QWidget {
+    background-color: #2D3748; /* Azul-acinzentado escuro para o fundo */
+    color: #E2E8F0; /* Texto em cinza claro para alto contraste */
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 10pt;
+    border: none;
+}
+
+/* Estilo para GroupBox (Contêineres com Título) */
+QGroupBox {
+    background-color: #1A202C; /* Fundo mais escuro para destaque */
+    border: 1px solid #4A5568;
+    border-radius: 8px;
+    margin-top: 1em; /* Espaço para o título não sobrepor a borda */
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 2px 8px;
+    background-color: #00B5D8; /* Ciano vibrante para o título */
+    color: #1A202C; /* Texto escuro no título para contraste */
+    border-radius: 4px;
+}
+
+/* Campos de Entrada de Texto, ComboBox e SpinBox */
+QLineEdit, QTextEdit, QComboBox, QDoubleSpinBox, QSpinBox {
+    background-color: #2D3748;
+    border: 1px solid #4A5568;
+    border-radius: 4px;
+    padding: 5px;
+    color: #E2E8F0;
+}
+
+QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QDoubleSpinBox:focus, QSpinBox:focus {
+    border: 1px solid #00B5D8; /* Destaque em ciano ao focar */
+}
+
+/* Estilo para ComboBox (Dropdown) */
+QComboBox::drop-down {
+    border: none;
+}
+
+QComboBox::down-arrow {
+    image: url(C:/Users/mathe/Desktop/INOVA_PROCESS/down_arrow.png); /* Use um ícone de seta branca aqui */
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #2D3748;
+    border: 1px solid #00B5D8;
+    selection-background-color: #00B5D8;
+    selection-color: #1A202C;
+    outline: 0px;
+}
+
+/* Botões */
+QPushButton {
+    background-color: #4A5568;
+    color: #E2E8F0;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #718096; /* Efeito hover mais claro */
+}
+
+QPushButton:pressed {
+    background-color: #2D3748;
+}
+
+/* Botões de Ação Principal (Ex: Gerar, Calcular) */
+QPushButton#primaryButton {
+    background-color: #00B5D8;
+    color: #1A202C;
+}
+QPushButton#primaryButton:hover {
+    background-color: #4FD1C5; /* Verde-água para hover */
+}
+QPushButton#primaryButton:pressed {
+    background-color: #00A3BF;
+}
+
+/* <<< ADICIONADO: Estilo para botão de sucesso (verde) >>> */
+QPushButton#successButton {
+    background-color: #107C10; /* Verde escuro */
+    color: #FFFFFF; /* Texto branco */
+}
+QPushButton#successButton:hover {
+    background-color: #159d15;
+}
+QPushButton#successButton:pressed {
+    background-color: #0c5a0c;
+}
+
+/* <<< ADICIONADO: Estilo para botão de aviso (amarelo) >>> */
+QPushButton#warningButton {
+    background-color: #DCA307; /* Amarelo/Ouro */
+    color: #1A202C; /* Texto escuro */
+}
+QPushButton#warningButton:hover {
+    background-color: #f0b92a;
+}
+QPushButton#warningButton:pressed {
+    background-color: #c49106;
+}
+
+
+/* ============================================================================== */
+/* =================== CORREÇÃO PRINCIPAL: TABELA E LISTAS ====================== */
+/* ============================================================================== */
+
+QTableWidget, QListView {
+    background-color: #1A202C; /* Fundo da área da tabela */
+    border: 1px solid #4A5568;
+    border-radius: 4px;
+    gridline-color: #4A5568; /* Cor da grade */
+}
+
+/* Cabeçalho da Tabela */
+QHeaderView::section {
+    background-color: #2D3748;
+    color: #E2E8F0;
+    padding: 6px;
+    border: 1px solid #4A5568;
+    font-weight: bold;
+}
+
+/* Itens da Tabela - Garante que o texto seja visível */
+QTableWidget::item {
+    color: #E2E8F0;
+    font-size: 11pt; /* <<< AUMENTA A FONTE PARA MELHOR LEITURA >>> */
+    padding-left: 5px;
+}
+
+/* Item da Tabela quando Selecionado */
+QTableWidget::item:selected {
+    background-color: #00B5D8; /* Fundo ciano na seleção */
+    color: #1A202C; /* Texto escuro para contraste na seleção */
+}
+
+/* Barra de Log/Execução */
+QTextEdit#logExecution {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #1A202C;
+    color: #4FD1C5; /* Texto verde-água, estilo "terminal" */
+}
+
+/* Barra de Rolagem */
+QScrollBar:vertical {
+    border: none;
+    background: #1A202C;
+    width: 12px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #4A5568;
+    min-height: 20px;
+    border-radius: 6px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #718096;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background: #1A202C;
+    height: 12px;
+    margin: 0px 0px 0px 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #4A5568;
+    min-width: 20px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #718096;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    border: none;
+    background: none;
+}
+"""
 
 # =============================================================================
 # CLASSE PRINCIPAL DA INTERFACE GRÁFICA
@@ -43,7 +249,6 @@ class MainWindow(QMainWindow):
 
         # =====================================================================
         # <<< INÍCIO DA CONSTRUÇÃO DA INTERFACE GRÁFICA (UI) >>>
-        # Esta é a parte que provavelmente estava faltando.
         # =====================================================================
         
         central_widget = QWidget()
@@ -57,7 +262,6 @@ class MainWindow(QMainWindow):
         project_group = QGroupBox("1. Projeto")
         project_layout = QVBoxLayout()
         self.start_project_btn = QPushButton("Iniciar Novo Projeto...")
-        self.start_project_btn.setStyleSheet("background-color: #007bff; color: white; font-weight: bold;")
         self.history_btn = QPushButton("Ver Histórico de Projetos")
         project_layout.addWidget(self.start_project_btn)
         project_layout.addWidget(self.history_btn)
@@ -135,6 +339,7 @@ class MainWindow(QMainWindow):
         man_layout.addLayout(man_form_layout)
         man_layout.addWidget(self.add_furo_btn)
         self.furos_table = QTableWidget(0, 4)
+        self.furos_table.setMaximumHeight(150) # <<< LIMITA A ALTURA DA TABELA DE FUROS
         self.furos_table.setHorizontalHeaderLabels(["Diâmetro", "Pos X", "Pos Y", "Ação"])
         man_layout.addWidget(self.furos_table)
         man_group.setLayout(man_layout)
@@ -142,7 +347,7 @@ class MainWindow(QMainWindow):
         furos_main_group.setLayout(furos_main_layout)
         top_h_layout.addWidget(furos_main_group, stretch=1)
         main_layout.addLayout(top_h_layout)
-
+        
         self.add_piece_btn = QPushButton("Adicionar Peça à Lista")
         main_layout.addWidget(self.add_piece_btn)
 
@@ -159,21 +364,19 @@ class MainWindow(QMainWindow):
         list_layout.addWidget(self.dir_label)
         process_buttons_layout = QHBoxLayout()
         self.conclude_project_btn = QPushButton("Projeto Concluído")
-        self.conclude_project_btn.setStyleSheet("background-color: #28a745; color: white; font-weight: bold;")
         self.export_excel_btn = QPushButton("Exportar para Excel")
         self.process_pdf_btn, self.process_dxf_btn, self.process_all_btn = QPushButton("Gerar PDFs"), QPushButton("Gerar DXFs"), QPushButton("Gerar PDFs e DXFs")
         process_buttons_layout.addWidget(self.export_excel_btn)
         process_buttons_layout.addWidget(self.conclude_project_btn)
         process_buttons_layout.addStretch()
         self.calculate_nesting_btn = QPushButton("Calcular Aproveitamento")
-        self.calculate_nesting_btn.setStyleSheet("background-color: #ffc107; color: black;") # Um amarelo para destacar
         process_buttons_layout.addWidget(self.calculate_nesting_btn)
         process_buttons_layout.addWidget(self.process_pdf_btn)
         process_buttons_layout.addWidget(self.process_dxf_btn)
         process_buttons_layout.addWidget(self.process_all_btn)
         list_layout.addLayout(process_buttons_layout)
         list_group.setLayout(list_layout)
-        main_layout.addWidget(list_group, stretch=1)
+        main_layout.addWidget(list_group, stretch=5) # <<< AUMENTA A PRIORIDADE DE EXPANSÃO DA LISTA
         
         # --- Barra de Progresso e Log ---
         self.progress_bar = QProgressBar()
@@ -183,7 +386,13 @@ class MainWindow(QMainWindow):
         self.log_text = QTextEdit()
         log_layout.addWidget(self.log_text)
         log_group.setLayout(log_layout)
-        main_layout.addWidget(log_group)
+        main_layout.addWidget(log_group, stretch=1) # <<< DÁ UMA PRIORIDADE MENOR AO LOG
+
+        # --- Aplicação de Estilos Específicos via objectName ---
+        self.start_project_btn.setObjectName("primaryButton")
+        self.conclude_project_btn.setObjectName("successButton")
+        self.calculate_nesting_btn.setObjectName("warningButton")
+
         self.statusBar().showMessage("Pronto")
         
         # --- Conexões de Sinais e Slots (Eventos) ---
@@ -209,8 +418,14 @@ class MainWindow(QMainWindow):
 
     # =====================================================================
     # <<< INÍCIO DAS FUNÇÕES (MÉTODOS) DA CLASSE MainWindow >>>
-    # Todos os métodos que definem o comportamento da aplicação
     # =====================================================================
+    
+    # ... (TODOS OS SEUS MÉTODOS CONTINUAM IGUAIS ATÉ O update_table_display)
+    # Exemplo: start_new_project, set_initial_button_state, etc.
+    # Vou omiti-los aqui para economizar espaço, mas eles devem permanecer no seu código.
+    # ...
+    # COPIE E COLE TODOS OS SEUS MÉTODOS DE start_new_project ATÉ set_buttons_enabled_on_process AQUI
+    # ...
 
     def start_new_project(self):
         parent_dir = QFileDialog.getExistingDirectory(self, "Selecione a Pasta Principal para o Novo Projeto")
@@ -228,7 +443,7 @@ class MainWindow(QMainWindow):
             self.project_directory = project_path
             self.projeto_input.setText(project_name)
             self.dir_label.setText(f"Projeto Ativo: {self.project_directory}")
-            self.dir_label.setStyleSheet("font-style: normal; color: black;")
+            self.dir_label.setStyleSheet("font-style: normal; color: #E2E8F0;") # Cor do texto do tema
             self.log_text.append(f"\n--- NOVO PROJETO INICIADO: {project_name} ---")
             self.log_text.append(f"Arquivos serão salvos em: {self.project_directory}")
             self.set_initial_button_state()
@@ -236,8 +451,6 @@ class MainWindow(QMainWindow):
     def set_initial_button_state(self):
         is_project_active = self.project_directory is not None
         has_items = not (self.excel_df.empty and self.manual_df.empty)
-
-        # Habilita/desabilita botões conforme o estado do projeto e se há itens na lista
         self.calculate_nesting_btn.setEnabled(is_project_active and has_items)
         self.start_project_btn.setEnabled(True)
         self.history_btn.setEnabled(True)
@@ -259,7 +472,6 @@ class MainWindow(QMainWindow):
         if dialog.exec_() == QDialog.Accepted:
             loaded_pieces = dialog.loaded_project_data
             if loaded_pieces:
-                # Tenta obter o número do projeto a partir do primeiro item da lista
                 project_number_loaded = loaded_pieces[0].get('project_number') if loaded_pieces and 'project_number' in loaded_pieces[0] else dialog.project_list_widget.currentItem().text()
                 self.start_new_project_from_history(project_number_loaded, loaded_pieces)
     
@@ -273,7 +485,7 @@ class MainWindow(QMainWindow):
         self.projeto_input.setText(project_name)
         self.excel_df = pd.DataFrame(columns=self.colunas_df)
         self.manual_df = pd.DataFrame(pieces_data)
-        self.dir_label.setText(f"Projeto Ativo: {self.project_directory}"); self.dir_label.setStyleSheet("font-style: normal; color: black;")
+        self.dir_label.setText(f"Projeto Ativo: {self.project_directory}"); self.dir_label.setStyleSheet("font-style: normal; color: #E2E8F0;")
         self.log_text.append(f"\n--- PROJETO DO HISTÓRICO CARREGADO: {project_name} ---")
         self.update_table_display()
         self.set_initial_button_state()
@@ -285,11 +497,14 @@ class MainWindow(QMainWindow):
     def start_processing(self, generate_pdf, generate_dxf):
         if not self.project_directory:
             QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um novo projeto antes de gerar arquivos."); return
+        project_number = self.projeto_input.text().strip()
+        if not project_number:
+            QMessageBox.warning(self, "Número do Projeto Ausente", "Por favor, defina um número para o projeto ativo."); return
         combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
         if combined_df.empty: QMessageBox.warning(self, "Aviso", "A lista de peças está vazia."); return
         self.set_buttons_enabled_on_process(False)
         self.progress_bar.setVisible(True); self.progress_bar.setValue(0); self.log_text.clear()
-        self.process_thread = ProcessThread(combined_df.copy(), generate_pdf, generate_dxf, self.project_directory)
+        self.process_thread = ProcessThread(combined_df.copy(), generate_pdf, generate_dxf, self.project_directory, project_number)
         self.process_thread.update_signal.connect(self.log_text.append)
         self.process_thread.progress_signal.connect(self.progress_bar.setValue)
         self.process_thread.finished_signal.connect(self.processing_finished)
@@ -322,32 +537,21 @@ class MainWindow(QMainWindow):
         if self.excel_df.empty and self.manual_df.empty:
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para calcular o aproveitamento.")
             return
-        
-        # Combina os dataframes para ter todas as peças
         combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-
-        # Apenas peças retangulares são válidas para este cálculo
         rect_df = combined_df[combined_df['forma'] == 'rectangle'].copy()
-
         if rect_df.empty:
             QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle'.")
             return
-
-        # Instancia e abre o diálogo, passando o dataframe com as peças
         dialog = NestingDialog(rect_df, self)
         dialog.exec_()
 
-
     def export_project_to_excel(self):
-        # --- INÍCIO DA NOVA LÓGICA DE EXPORTAÇÃO ---
-        # 1. Obter parâmetros para o cálculo de aproveitamento
         chapa_largura_str, ok1 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Largura da Chapa (mm):", text="3000")
         if not ok1: return
         chapa_altura_str, ok2 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Altura da Chapa (mm):", text="1500")
         if not ok2: return
         offset_str, ok3 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Offset entre Peças (mm):", text="8")
         if not ok3: return
-
         try:
             chapa_largura = float(chapa_largura_str)
             chapa_altura = float(chapa_altura_str)
@@ -355,167 +559,105 @@ class MainWindow(QMainWindow):
         except (ValueError, TypeError):
             QMessageBox.critical(self, "Erro de Entrada", "Valores de chapa e offset devem ser numéricos.")
             return
-
         project_number = self.projeto_input.text().strip()
         if not project_number:
             QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um novo projeto para poder exportá-lo.")
             return
-
         combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
         if combined_df.empty:
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para exportar.")
             return
-
         default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V4_NOVA_{project_number}.xlsx")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Resumo do Projeto", default_filename, "Excel Files (*.xlsx)")
-
         if not save_path:
             return
-
-        # Ativa a barra de progresso e desabilita botões
         self.set_buttons_enabled_on_process(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.log_text.clear()
         self.log_text.append("Iniciando exportação para Excel...")
-        QApplication.processEvents() # Força a atualização da UI
-
+        QApplication.processEvents()
         try:
-            template_path = 'CUSTO_PLASMA-LASER_V4_NOVA.xlsx' # Caminho para o template
+            template_path = 'CUSTO_PLASMA-LASER_V4_NOVA.xlsx'
             if not os.path.exists(template_path):
                 QMessageBox.critical(self, "Template Não Encontrado", f"O arquivo modelo '{template_path}' não foi encontrado no diretório da aplicação.")
                 return
-
-            # Carrega o workbook e a planilha ativa
             wb = load_workbook(template_path)
             ws = wb.active
-
-            # --- PARTE 1: Preencher a lista de peças (como antes) ---
             self.log_text.append("Preenchendo lista de peças...")
             QApplication.processEvents()
-
             start_row = 1
             while ws.cell(row=start_row, column=1).value is not None:
                 start_row += 1
-
             total_pecas = len(combined_df)
             for index, row_data in enumerate(combined_df.iterrows()):
-                row_data = row_data[1] # Acessa os dados da linha
+                row_data = row_data[1]
                 current_row = start_row + index
-
-                # Coluna A: Número do Projeto
                 ws.cell(row=current_row, column=1, value=project_number)
-                # Coluna B: Nome da Peça
                 ws.cell(row=current_row, column=2, value=row_data.get('nome_arquivo', ''))
-                # Coluna C: Quantidade de Peças
                 ws.cell(row=current_row, column=3, value=row_data.get('qtd', 0))
-
-                # Coluna D: Forma (Abreviada)
-                # CORREÇÃO: Garante que 'forma' seja uma string antes de usar .lower()
                 forma = str(row_data.get('forma', '')).lower()
                 largura = row_data.get('largura', 0)
                 altura = row_data.get('altura', 0)
-                forma_map = {
-                    'circle': 'C',
-                    'trapezoid': 'TP',
-                    'right_triangle': 'T'
-                }
+                forma_map = {'circle': 'C', 'trapezoid': 'TP', 'right_triangle': 'T'}
                 if forma == 'rectangle':
                     forma_abreviada = 'Q' if largura == altura and largura > 0 else 'R'
                 else:
                     forma_abreviada = forma_map.get(forma, '')
                 ws.cell(row=current_row, column=4, value=forma_abreviada)
-
-                # Coluna E: Quantidade de Furos
                 furos = row_data.get('furos', [])
                 num_furos = len(furos) if isinstance(furos, list) else 0
                 ws.cell(row=current_row, column=5, value=num_furos)
-                
-                # Coluna F: Diâmetro do Furo (primeiro furo, se houver)
                 diametro_furo = furos[0].get('diam', 0) if num_furos > 0 else 0
                 ws.cell(row=current_row, column=6, value=diametro_furo)
-
-                # Colunas G, H, I
-                ws.cell(row=current_row, column=7, value=row_data.get('espessura', 0)) # G: Espessura
-                ws.cell(row=current_row, column=8, value=largura)                      # H: Largura
-                ws.cell(row=current_row, column=9, value=altura)                       # I: Altura
-
+                ws.cell(row=current_row, column=7, value=row_data.get('espessura', 0))
+                ws.cell(row=current_row, column=8, value=largura)
+                ws.cell(row=current_row, column=9, value=altura)
                 self.progress_bar.setValue(int(((index + 1) / (total_pecas * 2)) * 100))
-
-            # --- PARTE 2: Calcular e preencher o aproveitamento ---
             self.log_text.append("Calculando aproveitamento de chapas...")
             QApplication.processEvents()
-
             rect_df = combined_df[combined_df['forma'] == 'rectangle'].copy()
             rect_df['espessura'] = rect_df['espessura'].astype(float)
             grouped = rect_df.groupby('espessura')
-            
-            # Define a linha inicial para os dados de aproveitamento
             current_row = 209
-            
-            # Cabeçalho da seção de aproveitamento
             ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = wb.active['A1'].font.copy(bold=True, size=14)
             current_row += 2
-
             for espessura, group in grouped:
                 pecas_para_calcular = []
                 for _, row in group.iterrows():
                     if row['largura'] > 0 and row['altura'] > 0:
-                        pecas_para_calcular.append({
-                            'largura': row['largura'] + offset,
-                            'altura': row['altura'] + offset,
-                            'quantidade': int(row['qtd'])
-                        })
-                
+                        pecas_para_calcular.append({'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'quantidade': int(row['qtd'])})
                 if not pecas_para_calcular: continue
-
                 resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
-
-                # Escreve o cabeçalho da espessura
                 ws.cell(row=current_row, column=1, value=f"Espessura: {espessura} mm").font = wb.active['A1'].font.copy(bold=True, size=12)
                 current_row += 1
-
-                # Calcula e escreve o peso
                 total_chapas_usadas = resultado['total_chapas']
-                # Formula: L(m) * A(m) * E(m) * densidade(ton/m^3) * 1000(kg/ton) * num_chapas
                 peso_kg = (chapa_largura/1000) * (chapa_altura/1000) * (espessura/1000) * 7.85 * 1000 * total_chapas_usadas
-                
                 ws.cell(row=current_row, column=1, value=f"Total de Chapas: {total_chapas_usadas}")
                 ws.cell(row=current_row, column=2, value=f"Aproveitamento: {resultado['aproveitamento_geral']}")
                 ws.cell(row=current_row, column=3, value=f"Peso Total Estimado: {peso_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
                 current_row += 2
-
-                # Escreve os detalhes de cada plano
                 for i, plano_info in enumerate(resultado['planos_unicos']):
                     ws.cell(row=current_row, column=1, value=f"Plano de Corte {i+1} (Repetir {plano_info['repeticoes']}x)").font = wb.active['A1'].font.copy(italic=True)
                     current_row += 1
-                    
                     ws.cell(row=current_row, column=2, value="Peças neste plano:")
                     current_row += 1
-
                     for item in plano_info['resumo_pecas']:
-                        # Remove o offset do nome da peça para exibição
                         dimensoes_sem_offset = item['tipo'].split('x')
                         largura_real = float(dimensoes_sem_offset[0]) - offset
                         altura_real = float(dimensoes_sem_offset[1]) - offset
                         texto_peca = f"- {item['qtd']}x de {largura_real:.0f}x{altura_real:.0f} mm"
                         ws.cell(row=current_row, column=3, value=texto_peca)
                         current_row += 1
-                    current_row += 1 # Espaço extra entre os planos
-                
-                # MELHORIA: Adiciona uma linha cinza mesclada como separador
+                    current_row += 1
                 ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
                 cell = ws.cell(row=current_row, column=1)
                 cell.fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
-                current_row += 2 # Espaço extra entre as espessuras
-                self.progress_bar.setValue(50 + int((current_row / 400) * 50)) # Simula progresso
-
+                current_row += 2
+                self.progress_bar.setValue(50 + int((current_row / 400) * 50))
             self.log_text.append("Salvando arquivo Excel...")
             QApplication.processEvents()
-
-            # Salva o arquivo preenchido no caminho escolhido pelo usuário
             wb.save(save_path)
-            
             self.progress_bar.setValue(100)
             self.log_text.append(f"Resumo do projeto salvo com sucesso em: {save_path}")
             QMessageBox.information(self, "Sucesso", f"O arquivo Excel foi salvo com sucesso em:\n{save_path}")
@@ -523,7 +665,6 @@ class MainWindow(QMainWindow):
             self.log_text.append(f"ERRO ao exportar para Excel: {e}")
             QMessageBox.critical(self, "Erro na Exportação", f"Ocorreu um erro ao salvar o arquivo:\n{e}")
         finally:
-            # Reabilita os botões e esconde a barra de progresso ao final
             self.set_buttons_enabled_on_process(True)
             self.progress_bar.setVisible(False)
 
@@ -544,8 +685,6 @@ class MainWindow(QMainWindow):
     def set_buttons_enabled_on_process(self, enabled):
         is_project_active = self.project_directory is not None
         has_items = not (self.excel_df.empty and self.manual_df.empty)
-
-        # Durante processamento, respeita o parâmetro 'enabled' e o estado do projeto
         self.calculate_nesting_btn.setEnabled(enabled and is_project_active and has_items)
         self.start_project_btn.setEnabled(enabled)
         self.history_btn.setEnabled(enabled)
@@ -560,44 +699,63 @@ class MainWindow(QMainWindow):
         self.process_all_btn.setEnabled(enabled and is_project_active and has_items)
         self.conclude_project_btn.setEnabled(enabled and is_project_active and has_items)
         self.export_excel_btn.setEnabled(enabled and is_project_active and has_items)
-    
+
     def update_table_display(self):
-        self.set_initial_button_state() # Garante que os botões sempre reflitam o estado atual
+        self.set_initial_button_state()
         combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-        self.pieces_table.setRowCount(0)
-        if combined_df.empty: return
+        
+        # --- CORREÇÃO: Método robusto para limpar a tabela antes de atualizar ---
+        self.pieces_table.blockSignals(True)
+        while self.pieces_table.rowCount() > 0:
+            self.pieces_table.removeRow(0)
+        self.pieces_table.blockSignals(False)
+        if combined_df.empty:
+            header = self.pieces_table.horizontalHeader()
+            header.setSectionResizeMode(QHeaderView.ResizeToContents)
+            header.setStretchLastSection(True)
+            return
         self.pieces_table.setRowCount(len(combined_df))
+        self.pieces_table.verticalHeader().setDefaultSectionSize(40) # <<< ALTURA DE LINHA OTIMIZADA >>>
         for i, row in combined_df.iterrows():
             for j, col in enumerate(self.colunas_df):
-                value = row[col]
-                display_value = f"{len(value)} Furo(s)" if col == 'furos' and isinstance(value, list) else ('-' if pd.isna(value) or value == 0 else str(value))
-                self.pieces_table.setItem(i, j, QTableWidgetItem(display_value))
+                value = row.get(col)
+                if col == 'furos' and isinstance(value, list):
+                    display_value = f"{len(value)} Furo(s)"
+                elif pd.isna(value) or value == 0:
+                    display_value = '-'
+                else:
+                    display_value = str(value)
+                item = QTableWidgetItem(display_value)
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft) # <<< ALINHAMENTO MELHORADO >>>
+                self.pieces_table.setItem(i, j, item)
+
             action_widget = QWidget()
             action_layout = QHBoxLayout(action_widget)
             action_layout.setContentsMargins(5, 0, 5, 0)
+            action_layout.setSpacing(5)
             edit_btn, delete_btn = QPushButton("Editar"), QPushButton("Excluir")
             edit_btn.clicked.connect(lambda _, r=i: self.edit_row(r))
             delete_btn.clicked.connect(lambda _, r=i: self.delete_row(r))
             action_layout.addWidget(edit_btn)
             action_layout.addWidget(delete_btn)
             self.pieces_table.setCellWidget(i, len(self.colunas_df), action_widget)
-        self.pieces_table.resizeColumnsToContents()
+
+        header = self.pieces_table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setStretchLastSection(True)
     
     def edit_row(self, row_index):
         len_excel = len(self.excel_df)
         is_from_excel = row_index < len_excel
         df_source = self.excel_df if is_from_excel else self.manual_df
         local_index = row_index if is_from_excel else row_index - len_excel
-        
         piece_data = df_source.iloc[local_index]
         self.nome_input.setText(str(piece_data.get('nome_arquivo', '')))
         self.espessura_input.setText(str(piece_data.get('espessura', '')))
         self.qtd_input.setText(str(piece_data.get('qtd', '')))
-        
         shape = piece_data.get('forma', '')
         index = self.forma_combo.findText(shape, Qt.MatchFixedString)
         if index >= 0: self.forma_combo.setCurrentIndex(index)
-        
         self.largura_input.setText(str(piece_data.get('largura', '')))
         self.altura_input.setText(str(piece_data.get('altura', '')))
         self.diametro_input.setText(str(piece_data.get('diametro', '')))
@@ -606,11 +764,8 @@ class MainWindow(QMainWindow):
         self.trapezoid_large_base_input.setText(str(piece_data.get('trapezoid_large_base', '')))
         self.trapezoid_small_base_input.setText(str(piece_data.get('trapezoid_small_base', '')))
         self.trapezoid_height_input.setText(str(piece_data.get('trapezoid_height', '')))
-        
         self.furos_atuais = piece_data.get('furos', []).copy() if isinstance(piece_data.get('furos'), list) else []
         self.update_furos_table()
-        
-        # Remove a linha do dataframe para que ela possa ser adicionada novamente
         df_source.drop(df_source.index[local_index], inplace=True)
         df_source.reset_index(drop=True, inplace=True)
         self.log_text.append(f"Peça '{piece_data['nome_arquivo']}' carregada para edição.")
@@ -621,7 +776,6 @@ class MainWindow(QMainWindow):
         is_from_excel = row_index < len_excel
         df_source = self.excel_df if is_from_excel else self.manual_df
         local_index = row_index if is_from_excel else row_index - len_excel
-        
         piece_name = df_source.iloc[local_index]['nome_arquivo']
         df_source.drop(df_source.index[local_index], inplace=True)
         df_source.reset_index(drop=True, inplace=True)
@@ -647,7 +801,7 @@ class MainWindow(QMainWindow):
                 new_piece[key] = float(field.text().replace(',', '.')) if field.text() else 0.0
             self.manual_df = pd.concat([self.manual_df, pd.DataFrame([new_piece])], ignore_index=True)
             self.log_text.append(f"Peça '{nome}' adicionada/atualizada.")
-            self._clear_session(clear_project_number=False) # Não limpa o número do projeto
+            self._clear_session(clear_project_number=False)
             self.update_table_display()
         except ValueError: QMessageBox.critical(self, "Erro de Valor", "Campos numéricos devem conter números válidos.")
     
@@ -672,17 +826,10 @@ class MainWindow(QMainWindow):
                     df['furos'] = df['furos'].apply(parse_furos)
                 else:
                     df['furos'] = [[] for _ in range(len(df))]
-                
-                # --- CORREÇÃO: Limpeza de dados NaN ---
-                # Lista de colunas que devem ser numéricas (exceto 'furos')
                 numeric_cols = [col for col in self.colunas_df if col != 'furos' and col != 'forma' and col != 'nome_arquivo']
-                
-                # Substitui NaN por 0 e converte para o tipo float
                 for col in numeric_cols:
-                    # Garante que a coluna exista antes de tentar preencher
                     if col in df.columns:
                         df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-
                 self.excel_df = df[self.colunas_df]
                 self.file_label.setText(f"Planilha: {os.path.basename(file_path)}"); self.update_table_display()
             except Exception as e: QMessageBox.critical(self, "Erro de Leitura", f"Falha ao ler o arquivo: {e}")
@@ -737,6 +884,7 @@ class MainWindow(QMainWindow):
 # =============================================================================
 def main():
     app = QApplication(sys.argv)
+    app.setStyleSheet(INOVA_PROCESS_STYLE) # Aplica o tema escuro em toda a aplicação
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
