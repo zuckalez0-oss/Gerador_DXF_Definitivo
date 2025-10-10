@@ -111,5 +111,521 @@
                 "project_number": "1875"
             }
         ]
+    },
+    "1921": {
+        "project_number": "1921",
+        "save_date": "10/10/2025 08:00:37",
+        "pieces": [
+            {
+                "nome_arquivo": "1921_DES1817_3.00",
+                "forma": "rectangle",
+                "espessura": 3.0,
+                "qtd": 140.0,
+                "largura": 160.0,
+                "altura": 160.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 10.0,
+                        "x": 15.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 10.0,
+                        "x": 145.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 10.0,
+                        "x": 145.0,
+                        "y": 145.0
+                    },
+                    {
+                        "diam": 10.0,
+                        "x": 15.0,
+                        "y": 145.0
+                    },
+                    {
+                        "diam": 25.4,
+                        "x": 80.0,
+                        "y": 80.0
+                    }
+                ],
+                "project_number": "1921"
+            }
+        ]
+    },
+    "1922": {
+        "project_number": "1922",
+        "save_date": "10/10/2025 08:26:47",
+        "pieces": [
+            {
+                "nome_arquivo": "1922_DES1818_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 1.0,
+                "largura": 220.0,
+                "altura": 220.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 19.04,
+                        "x": 40.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 180.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 180.0,
+                        "y": 180.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 40.0,
+                        "y": 180.0
+                    }
+                ],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "1922_DES1819_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 1.0,
+                "largura": 250.0,
+                "altura": 170.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 19.04,
+                        "x": 40.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 210.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 210.0,
+                        "y": 130.0
+                    },
+                    {
+                        "diam": 19.04,
+                        "x": 40.0,
+                        "y": 130.0
+                    }
+                ],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "1922_DES1820_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 34.0,
+                "largura": 250.0,
+                "altura": 170.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 210.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 210.0,
+                        "y": 130.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 130.0
+                    }
+                ],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "1922_DES1821_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 169.0,
+                "largura": 220.0,
+                "altura": 220.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 180.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 180.0,
+                        "y": 180.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 180.0
+                    }
+                ],
+                "project_number": "1922"
+            }
+        ]
+    },
+    "1923": {
+        "project_number": "1923",
+        "save_date": "10/10/2025 08:49:51",
+        "pieces": [
+            {
+                "nome_arquivo": "1923_DES1822_2.00",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 200.0,
+                "largura": 220.0,
+                "altura": 120.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 7.0,
+                        "x": 35.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 185.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 185.0,
+                        "y": 85.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 35.0,
+                        "y": 85.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 100.0,
+                        "y": 100.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 120.0,
+                        "y": 120.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 50.0,
+                        "y": 50.0
+                    },
+                    {
+                        "diam": 7.0,
+                        "x": 60.0,
+                        "y": 60.0
+                    }
+                ],
+                "project_number": "1923"
+            }
+        ]
+    },
+    "1916": {
+        "project_number": "1916",
+        "save_date": "10/10/2025 09:16:50",
+        "pieces": [
+            {
+                "nome_arquivo": "1916_VDS229_15.88",
+                "forma": "rectangle",
+                "espessura": 15.88,
+                "qtd": 6.0,
+                "largura": 456.0,
+                "altura": 355.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1916"
+            }
+        ]
+    },
+    "1924": {
+        "project_number": "1924",
+        "save_date": "10/10/2025 09:33:30",
+        "pieces": [
+            {
+                "nome_arquivo": "1924_DES1824_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 54.0,
+                "largura": 100.0,
+                "altura": 200.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 13.0,
+                        "x": 25.0,
+                        "y": 25.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 75.0,
+                        "y": 25.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 75.0,
+                        "y": 175.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 25.0,
+                        "y": 175.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 25.0,
+                        "y": 76.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 25.0,
+                        "y": 125.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 75.0,
+                        "y": 76.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 75.0,
+                        "y": 125.0
+                    }
+                ],
+                "project_number": "1924"
+            },
+            {
+                "nome_arquivo": "1924_DES1823_3.00",
+                "forma": "rectangle",
+                "espessura": 3.0,
+                "qtd": 144.0,
+                "largura": 102.0,
+                "altura": 185.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 13.0,
+                        "x": 25.0,
+                        "y": 25.0
+                    },
+                    {
+                        "diam": 13.0,
+                        "x": 77.0,
+                        "y": 25.0
+                    }
+                ],
+                "project_number": "1924"
+            }
+        ]
+    },
+    "1925": {
+        "project_number": "1925",
+        "save_date": "10/10/2025 10:07:52",
+        "pieces": [
+            {
+                "nome_arquivo": "DES1825-plasma-c-dobra",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 1.0,
+                "largura": 1.0,
+                "altura": 1.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1925"
+            }
+        ]
+    },
+    "1926": {
+        "project_number": "1926",
+        "save_date": "10/10/2025 10:24:46",
+        "pieces": [
+            {
+                "nome_arquivo": "1926_DES1826_1.50",
+                "forma": "rectangle",
+                "espessura": 1.5,
+                "qtd": 1.0,
+                "largura": 3830.0,
+                "altura": 464.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1926"
+            },
+            {
+                "nome_arquivo": "1926_DES1827_1.50",
+                "forma": "rectangle",
+                "espessura": 1.5,
+                "qtd": 1.0,
+                "largura": 730.0,
+                "altura": 464.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1926"
+            },
+            {
+                "nome_arquivo": "1926_DES1828_1.50",
+                "forma": "rectangle",
+                "espessura": 1.5,
+                "qtd": 4.0,
+                "largura": 530.0,
+                "altura": 730.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1926"
+            }
+        ]
+    },
+    "1927": {
+        "project_number": "1927",
+        "save_date": "10/10/2025 11:34:04",
+        "pieces": [
+            {
+                "nome_arquivo": "1927_DES1830_12.70",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 4.0,
+                "largura": 470.0,
+                "altura": 360.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 430.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 430.0,
+                        "y": 320.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 40.0,
+                        "y": 320.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 170.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 300.0,
+                        "y": 40.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 170.0,
+                        "y": 320.0
+                    },
+                    {
+                        "diam": 18.0,
+                        "x": 300.0,
+                        "y": 320.0
+                    }
+                ],
+                "project_number": "1927"
+            }
+        ]
     }
 }
