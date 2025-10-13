@@ -27,135 +27,136 @@ from calculo_cortes import calcular_plano_de_corte
 # =============================================================================
 INOVA_PROCESS_STYLE = """
 /* ================================================================================
-   Estilo Dark Theme para INOVA PROCESS (v5 - Final Compact)
+   Estilo INOVA PROCESS (v8 - Tema Preto & Branco de Alto Contraste)
 ================================================================================ */
 
-/* Estilo Geral da Janela e Widgets */
+/* Passo 1: Fundo principal e cor de texto padrão */
 QWidget {
-    background-color: #2D3748;
-    color: #E2E8F0;
+    background-color: #111111; /* Preto suave para o fundo principal */
+    color: #FFFFFF;           /* Branco puro para o texto */
     font-family: 'Segoe UI', Arial, sans-serif;
-    /* <<< MUDANÇA 4: Fonte global reduzida ao mínimo para máxima densidade >>> */
     font-size: 7pt; 
     border: none;
 }
 
-/* Estilo do Splitter */
-QSplitter::handle { background-color: #4A5568; }
-QSplitter::handle:hover { background-color: #00B5D8; }
-QSplitter::handle:pressed { background-color: #718096; }
+QLabel {
+    color: #FFFFFF;
+    background: transparent;
+}
 
-/* Estilo para GroupBox */
-QGroupBox {
-    background-color: #1A202C; 
-    border: 1px solid #4A5568;
+/* Divisores (Splitter) */
+QSplitter::handle { background-color: #333333; }
+QSplitter::handle:hover { background-color: #FFFFFF; }
+QSplitter::handle:pressed { background-color: #CCCCCC; }
+
+/* Passo 2: Contêineres com fundo de cinza escuro para contraste */
+QGroupBox, QTableWidget, QListView {
+    background-color: #222222; 
+    border: 1px solid #444444; /* Borda cinza */
     border-radius: 8px;
+}
+QGroupBox {
     margin-top: 1em; 
     font-weight: bold;
 }
+
+/* Passo 3: Cor de Destaque - Títulos com fundo branco e texto preto */
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top center;
     padding: 2px 8px;
-    background-color: #00B5D8;
-    color: #1A202C; 
+    background-color: #FFFFFF; /* Destaque invertido (branco) */
+    color: #000000;           /* Destaque invertido (preto) */
     border-radius: 4px;
+    font-weight: bold;
 }
 
-/* <<< MUDANÇA 5: Inputs e Controles com padding final ajustado para 7pt >>> */
+/* Passo 4: Campos de Input e ComboBox */
 QLineEdit, QTextEdit, QComboBox, QDoubleSpinBox, QSpinBox {
-    background-color: #2D3748;
-    border: 1px solid #4A5568;
+    background-color: #111111;   /* Mesmo fundo do QWidget */
+    border: 1px solid #444444;   /* Borda cinza */
     border-radius: 4px;
     padding: 4px; 
-    color: #E2E8F0;
+    color: #FFFFFF;
 }
 QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QDoubleSpinBox:focus, QSpinBox:focus {
-    border: 1px solid #00B5D8;
+    border: 1px solid #FFFFFF; /* Foco com borda branca */
+}
+QLineEdit::placeholder {
+    color: #777777;
 }
 
-/* Estilo para ComboBox (Dropdown) */
+/* Detalhes do ComboBox */
 QComboBox::drop-down { border: none; }
 QComboBox::down-arrow {
-    image: url(C:/Users/mathe/Desktop/INOVA_PROCESS/down_arrow.png);
+    image: url(C:/Users/mathe/Desktop/INOVA_PROCESS/down_arrow.png); /* Manter o ícone de seta (assumindo que seja branco) */
     width: 10px; height: 10px; margin-right: 8px;
 }
 QComboBox QAbstractItemView {
-    background-color: #2D3748;
-    border: 1px solid #00B5D8;
-    selection-background-color: #00B5D8;
-    selection-color: #1A202C;
+    background-color: #222222;
+    border: 1px solid #FFFFFF;
+    selection-background-color: #FFFFFF;
+    selection-color: #000000;
     outline: 0px;
 }
 
-/* <<< MUDANÇA 6: Botões com padding final ajustado para 7pt >>> */
+/* Passo 5: Botões Padrão com tons de cinza */
 QPushButton {
-    background-color: #4A5568;
-    color: #E2E8F0;
+    background-color: #333333;   /* Cinza médio */
+    color: #DDDDDD;           /* Branco suave */
     font-weight: bold;
     padding: 4px 8px; 
     border-radius: 4px;
 }
-QPushButton:hover { background-color: #718096; }
-QPushButton:pressed { background-color: #2D3748; }
+QPushButton:hover { background-color: #555555; } /* Cinza mais claro no hover */
+QPushButton:pressed { background-color: #222222; }
 
-/* Botões de Ação Principal */
-QPushButton#primaryButton { background-color: #00B5D8; color: #1A202C; }
-QPushButton#primaryButton:hover { background-color: #4FD1C5; }
-QPushButton#primaryButton:pressed { background-color: #00A3BF; }
+/* Botão Primário (Invertido, como os títulos) */
+QPushButton#primaryButton { background-color: #FFFFFF; color: #000000; }
+QPushButton#primaryButton:hover { background-color: #CCCCCC; }
 
-/* Botão de sucesso (verde) */
+/* Botões de estado (Mantidos por usabilidade) */
 QPushButton#successButton { background-color: #107C10; color: #FFFFFF; }
 QPushButton#successButton:hover { background-color: #159d15; }
-QPushButton#successButton:pressed { background-color: #0c5a0c; }
-
-/* Botão de aviso (amarelo) */
 QPushButton#warningButton { background-color: #DCA307; color: #1A202C; }
 QPushButton#warningButton:hover { background-color: #f0b92a; }
-QPushButton#warningButton:pressed { background-color: #c49106; }
 
-/* TABELA E LISTAS */
-QTableWidget, QListView {
-    background-color: #1A202C;
-    border: 1px solid #4A5568;
-    border-radius: 4px;
-    gridline-color: #4A5568;
+/* Passo 6: Tabela */
+QTableWidget {
+    gridline-color: #444444;
 }
-
-/* Cabeçalho da Tabela */
 QHeaderView::section {
-    background-color: #2D3748;
-    color: #E2E8F0;
+    background-color: #222222;
+    color: #DDDDDD; /* Branco suave para não competir com os dados */
     padding: 4px;
-    border: 1px solid #4A5568;
+    border: 1px solid #444444;
     font-weight: bold;
 }
-
-/* Itens da Tabela */
 QTableWidget::item {
-    color: #E2E8F0;
-    font-size: 8pt; /* Fonte da tabela um pouco maior que o resto para destaque */
+    color: #FFFFFF;
+    font-size: 8pt;
     padding: 4px;
 }
+/* Seleção da tabela também usa o destaque invertido */
 QTableWidget::item:selected {
-    background-color: #00B5D8;
-    color: #1A202C;
+    background-color: #FFFFFF;
+    color: #000000;
 }
 
-/* Barra de Log/Execução */
+/* Barra de Log */
 QTextEdit#logExecution {
     font-family: 'Courier New', Courier, monospace;
-    background-color: #1A202C;
-    color: #4FD1C5;
+    background-color: #222222;
+    color: #4FD1C5; /* Mantive o ciano aqui para um look "terminal" clássico */
 }
 
-/* Barra de Rolagem */
-QScrollBar:vertical { border: none; background: #1A202C; width: 12px; margin: 0; }
-QScrollBar::handle:vertical { background: #4A5568; min-height: 20px; border-radius: 6px; }
-QScrollBar::handle:vertical:hover { background: #718096; }
-QScrollBar:horizontal { border: none; background: #1A202C; height: 12px; margin: 0; }
-QScrollBar::handle:horizontal { background: #4A5568; min-width: 20px; border-radius: 6px; }
-QScrollBar::handle:horizontal:hover { background: #718096; }
+/* Barras de Rolagem */
+QScrollBar:vertical { border: none; background: #222222; width: 12px; margin: 0; }
+QScrollBar::handle:vertical { background: #444444; min-height: 20px; border-radius: 6px; }
+QScrollBar::handle:vertical:hover { background: #666666; }
+QScrollBar:horizontal { border: none; background: #222222; height: 12px; margin: 0; }
+QScrollBar::handle:horizontal { background: #444444; min-width: 20px; border-radius: 6px; }
+QScrollBar::handle:horizontal:hover { background: #666666; }
 QScrollBar::add-line, QScrollBar::sub-line { border: none; background: none; }
 """
 
