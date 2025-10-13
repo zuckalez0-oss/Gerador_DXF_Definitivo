@@ -1,4 +1,4 @@
-# main.py (VERSÃO ATUALIZADA E COMPLETA)
+# main.py (VERSÃO OTIMIZADA COM LAYOUT RESPONSIVO)
 
 from openpyxl.styles import PatternFill, Font
 from openpyxl import load_workbook
@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QTextEdit, 
                              QFileDialog, QProgressBar, QMessageBox, QGroupBox,
                              QFormLayout, QLineEdit, QComboBox, QTableWidget, 
-                             QTableWidgetItem, QDialog, QInputDialog, QHeaderView)
+                             QTableWidgetItem, QDialog, QInputDialog, QHeaderView,
+                             QSplitter) # <<< IMPORTAÇÃO NECESSÁRIA >>>
 from PyQt5.QtCore import Qt
 
 # <<< IMPORTAÇÕES DAS CLASSES ENCAPSULADAS >>>
@@ -18,7 +19,7 @@ from code_manager import CodeGenerator
 from history_manager import HistoryManager
 from history_dialog import HistoryDialog
 from processing import ProcessThread
-from nesting_dialog import NestingDialog # Importa a nova classe do diálogo de nesting
+from nesting_dialog import NestingDialog
 from calculo_cortes import calcular_plano_de_corte
 
 # =============================================================================
@@ -26,65 +27,59 @@ from calculo_cortes import calcular_plano_de_corte
 # =============================================================================
 INOVA_PROCESS_STYLE = """
 /* ================================================================================
-    Estilo Dark Theme para INOVA PROCESS
-    - Paleta de cores baseada em tons de azul, ciano e cinza para um visual
-      tecnológico e profissional.
-    - Foco em legibilidade e usabilidade dos componentes.
-================================================================================
-*/
+   Estilo Dark Theme para INOVA PROCESS (v5 - Final Compact)
+================================================================================ */
 
 /* Estilo Geral da Janela e Widgets */
 QWidget {
-    background-color: #2D3748; /* Azul-acinzentado escuro para o fundo */
-    color: #E2E8F0; /* Texto em cinza claro para alto contraste */
+    background-color: #2D3748;
+    color: #E2E8F0;
     font-family: 'Segoe UI', Arial, sans-serif;
-    font-size: 10pt;
+    /* <<< MUDANÇA 4: Fonte global reduzida ao mínimo para máxima densidade >>> */
+    font-size: 7pt; 
     border: none;
 }
 
-/* Estilo para GroupBox (Contêineres com Título) */
+/* Estilo do Splitter */
+QSplitter::handle { background-color: #4A5568; }
+QSplitter::handle:hover { background-color: #00B5D8; }
+QSplitter::handle:pressed { background-color: #718096; }
+
+/* Estilo para GroupBox */
 QGroupBox {
-    background-color: #1A202C; /* Fundo mais escuro para destaque */
+    background-color: #1A202C; 
     border: 1px solid #4A5568;
     border-radius: 8px;
-    margin-top: 1em; /* Espaço para o título não sobrepor a borda */
+    margin-top: 1em; 
     font-weight: bold;
 }
-
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top center;
     padding: 2px 8px;
-    background-color: #00B5D8; /* Ciano vibrante para o título */
-    color: #1A202C; /* Texto escuro no título para contraste */
+    background-color: #00B5D8;
+    color: #1A202C; 
     border-radius: 4px;
 }
 
-/* Campos de Entrada de Texto, ComboBox e SpinBox */
+/* <<< MUDANÇA 5: Inputs e Controles com padding final ajustado para 7pt >>> */
 QLineEdit, QTextEdit, QComboBox, QDoubleSpinBox, QSpinBox {
     background-color: #2D3748;
     border: 1px solid #4A5568;
     border-radius: 4px;
-    padding: 5px;
+    padding: 4px; 
     color: #E2E8F0;
 }
-
 QLineEdit:focus, QTextEdit:focus, QComboBox:focus, QDoubleSpinBox:focus, QSpinBox:focus {
-    border: 1px solid #00B5D8; /* Destaque em ciano ao focar */
+    border: 1px solid #00B5D8;
 }
 
 /* Estilo para ComboBox (Dropdown) */
-QComboBox::drop-down {
-    border: none;
-}
-
+QComboBox::drop-down { border: none; }
 QComboBox::down-arrow {
-    image: url(C:/Users/mathe/Desktop/INOVA_PROCESS/down_arrow.png); /* Use um ícone de seta branca aqui */
-    width: 12px;
-    height: 12px;
-    margin-right: 8px;
+    image: url(C:/Users/mathe/Desktop/INOVA_PROCESS/down_arrow.png);
+    width: 10px; height: 10px; margin-right: 8px;
 }
-
 QComboBox QAbstractItemView {
     background-color: #2D3748;
     border: 1px solid #00B5D8;
@@ -93,138 +88,75 @@ QComboBox QAbstractItemView {
     outline: 0px;
 }
 
-/* Botões */
+/* <<< MUDANÇA 6: Botões com padding final ajustado para 7pt >>> */
 QPushButton {
     background-color: #4A5568;
     color: #E2E8F0;
     font-weight: bold;
-    padding: 8px 12px;
+    padding: 4px 8px; 
     border-radius: 4px;
 }
+QPushButton:hover { background-color: #718096; }
+QPushButton:pressed { background-color: #2D3748; }
 
-QPushButton:hover {
-    background-color: #718096; /* Efeito hover mais claro */
-}
+/* Botões de Ação Principal */
+QPushButton#primaryButton { background-color: #00B5D8; color: #1A202C; }
+QPushButton#primaryButton:hover { background-color: #4FD1C5; }
+QPushButton#primaryButton:pressed { background-color: #00A3BF; }
 
-QPushButton:pressed {
-    background-color: #2D3748;
-}
+/* Botão de sucesso (verde) */
+QPushButton#successButton { background-color: #107C10; color: #FFFFFF; }
+QPushButton#successButton:hover { background-color: #159d15; }
+QPushButton#successButton:pressed { background-color: #0c5a0c; }
 
-/* Botões de Ação Principal (Ex: Gerar, Calcular) */
-QPushButton#primaryButton {
-    background-color: #00B5D8;
-    color: #1A202C;
-}
-QPushButton#primaryButton:hover {
-    background-color: #4FD1C5; /* Verde-água para hover */
-}
-QPushButton#primaryButton:pressed {
-    background-color: #00A3BF;
-}
+/* Botão de aviso (amarelo) */
+QPushButton#warningButton { background-color: #DCA307; color: #1A202C; }
+QPushButton#warningButton:hover { background-color: #f0b92a; }
+QPushButton#warningButton:pressed { background-color: #c49106; }
 
-/* <<< ADICIONADO: Estilo para botão de sucesso (verde) >>> */
-QPushButton#successButton {
-    background-color: #107C10; /* Verde escuro */
-    color: #FFFFFF; /* Texto branco */
-}
-QPushButton#successButton:hover {
-    background-color: #159d15;
-}
-QPushButton#successButton:pressed {
-    background-color: #0c5a0c;
-}
-
-/* <<< ADICIONADO: Estilo para botão de aviso (amarelo) >>> */
-QPushButton#warningButton {
-    background-color: #DCA307; /* Amarelo/Ouro */
-    color: #1A202C; /* Texto escuro */
-}
-QPushButton#warningButton:hover {
-    background-color: #f0b92a;
-}
-QPushButton#warningButton:pressed {
-    background-color: #c49106;
-}
-
-
-/* ============================================================================== */
-/* =================== CORREÇÃO PRINCIPAL: TABELA E LISTAS ====================== */
-/* ============================================================================== */
-
+/* TABELA E LISTAS */
 QTableWidget, QListView {
-    background-color: #1A202C; /* Fundo da área da tabela */
+    background-color: #1A202C;
     border: 1px solid #4A5568;
     border-radius: 4px;
-    gridline-color: #4A5568; /* Cor da grade */
+    gridline-color: #4A5568;
 }
 
 /* Cabeçalho da Tabela */
 QHeaderView::section {
     background-color: #2D3748;
     color: #E2E8F0;
-    padding: 6px;
+    padding: 4px;
     border: 1px solid #4A5568;
     font-weight: bold;
 }
 
-/* Itens da Tabela - Garante que o texto seja visível */
+/* Itens da Tabela */
 QTableWidget::item {
     color: #E2E8F0;
-    font-size: 11pt; /* <<< AUMENTA A FONTE PARA MELHOR LEITURA >>> */
-    padding-left: 5px;
+    font-size: 8pt; /* Fonte da tabela um pouco maior que o resto para destaque */
+    padding: 4px;
 }
-
-/* Item da Tabela quando Selecionado */
 QTableWidget::item:selected {
-    background-color: #00B5D8; /* Fundo ciano na seleção */
-    color: #1A202C; /* Texto escuro para contraste na seleção */
+    background-color: #00B5D8;
+    color: #1A202C;
 }
 
 /* Barra de Log/Execução */
 QTextEdit#logExecution {
     font-family: 'Courier New', Courier, monospace;
     background-color: #1A202C;
-    color: #4FD1C5; /* Texto verde-água, estilo "terminal" */
+    color: #4FD1C5;
 }
 
 /* Barra de Rolagem */
-QScrollBar:vertical {
-    border: none;
-    background: #1A202C;
-    width: 12px;
-    margin: 0px 0px 0px 0px;
-}
-
-QScrollBar::handle:vertical {
-    background: #4A5568;
-    min-height: 20px;
-    border-radius: 6px;
-}
-QScrollBar::handle:vertical:hover {
-    background: #718096;
-}
-
-QScrollBar:horizontal {
-    border: none;
-    background: #1A202C;
-    height: 12px;
-    margin: 0px 0px 0px 0px;
-}
-
-QScrollBar::handle:horizontal {
-    background: #4A5568;
-    min-width: 20px;
-    border-radius: 6px;
-}
-
-QScrollBar::handle:horizontal:hover {
-    background: #718096;
-}
-
-QScrollBar::add-line, QScrollBar::sub-line {
-    border: none;
-    background: none;
-}
+QScrollBar:vertical { border: none; background: #1A202C; width: 12px; margin: 0; }
+QScrollBar::handle:vertical { background: #4A5568; min-height: 20px; border-radius: 6px; }
+QScrollBar::handle:vertical:hover { background: #718096; }
+QScrollBar:horizontal { border: none; background: #1A202C; height: 12px; margin: 0; }
+QScrollBar::handle:horizontal { background: #4A5568; min-width: 20px; border-radius: 6px; }
+QScrollBar::handle:horizontal:hover { background: #718096; }
+QScrollBar::add-line, QScrollBar::sub-line { border: none; background: none; }
 """
 
 # =============================================================================
@@ -233,31 +165,39 @@ QScrollBar::add-line, QScrollBar::sub-line {
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Gerador de Desenhos Técnicos e DXF")
-        self.setGeometry(100, 100, 1100, 850)
-        
-        # Instancia as classes dos módulos importados
+        self.setWindowTitle("Gerador de Desenhos Técnicos e DXF - INOVA PROCESS")
+        self.setGeometry(100, 100, 1280, 850) 
+        self.setMinimumSize(1100, 800)
+
         self.code_generator = CodeGenerator()
         self.history_manager = HistoryManager()
         
-        # Variáveis de estado da aplicação
         self.colunas_df = ['nome_arquivo', 'forma', 'espessura', 'qtd', 'largura', 'altura', 'diametro', 'rt_base', 'rt_height', 'trapezoid_large_base', 'trapezoid_small_base', 'trapezoid_height', 'furos']
         self.manual_df = pd.DataFrame(columns=self.colunas_df)
         self.excel_df = pd.DataFrame(columns=self.colunas_df)
         self.furos_atuais = []
         self.project_directory = None
 
-        # =====================================================================
-        # <<< INÍCIO DA CONSTRUÇÃO DA INTERFACE GRÁFICA (UI) >>>
-        # =====================================================================
+        self.initUI() # Chama o método que constrói a UI
+        self.connect_signals() # Chama o método que conecta os eventos
         
+        self.set_initial_button_state()
+        self.update_dimension_fields(self.forma_combo.currentText())
+
+    def initUI(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        
+
+        # --- Layout Superior (Inputs e Furos) ---
         top_h_layout = QHBoxLayout()
-        left_v_layout = QVBoxLayout()
         
+        # <<< MUDANÇA ESTRUTURAL 1: PAINEL ESQUERDO COM LARGURA MÍNIMA >>>
+        left_panel_widget = QWidget()
+        left_v_layout = QVBoxLayout(left_panel_widget)
+        left_v_layout.setContentsMargins(0,0,0,0) # Remove margens internas
+        left_panel_widget.setMinimumWidth(450) # Impede o "esmagamento"
+
         # --- Grupo 1: Projeto ---
         project_group = QGroupBox("1. Projeto")
         project_layout = QVBoxLayout()
@@ -285,6 +225,8 @@ class MainWindow(QMainWindow):
         # --- Grupo 3: Informações da Peça ---
         manual_group = QGroupBox("3. Informações da Peça")
         manual_layout = QFormLayout()
+        manual_layout.setLabelAlignment(Qt.AlignRight)
+        manual_layout.setVerticalSpacing(8)
         self.projeto_input = QLineEdit()
         self.projeto_input.setReadOnly(True)
         manual_layout.addRow("Nº do Projeto Ativo:", self.projeto_input)
@@ -293,6 +235,7 @@ class MainWindow(QMainWindow):
         name_layout = QHBoxLayout()
         name_layout.addWidget(self.nome_input)
         name_layout.addWidget(self.generate_code_btn)
+        name_layout.setSpacing(5)
         manual_layout.addRow("Nome/ID da Peça:", name_layout)
         self.forma_combo = QComboBox()
         self.forma_combo.addItems(['rectangle', 'circle', 'right_triangle', 'trapezoid'])
@@ -314,9 +257,10 @@ class MainWindow(QMainWindow):
         manual_group.setLayout(manual_layout)
         left_v_layout.addWidget(manual_group)
         left_v_layout.addStretch()
-        top_h_layout.addLayout(left_v_layout)
         
-        # --- Grupo 4: Furos ---
+        top_h_layout.addWidget(left_panel_widget) # Adiciona o painel esquerdo ao layout horizontal
+
+        # --- Grupo 4: Furos (Painel Direito) ---
         furos_main_group = QGroupBox("4. Adicionar Furos")
         furos_main_layout = QVBoxLayout()
         self.rep_group = QGroupBox("Furação Rápida")
@@ -339,17 +283,17 @@ class MainWindow(QMainWindow):
         man_layout.addLayout(man_form_layout)
         man_layout.addWidget(self.add_furo_btn)
         self.furos_table = QTableWidget(0, 4)
-        self.furos_table.setMaximumHeight(150) # <<< LIMITA A ALTURA DA TABELA DE FUROS
+        self.furos_table.setMaximumHeight(150)
         self.furos_table.setHorizontalHeaderLabels(["Diâmetro", "Pos X", "Pos Y", "Ação"])
         man_layout.addWidget(self.furos_table)
         man_group.setLayout(man_layout)
         furos_main_layout.addWidget(man_group)
         furos_main_group.setLayout(furos_main_layout)
         top_h_layout.addWidget(furos_main_group, stretch=1)
-        main_layout.addLayout(top_h_layout)
-        
-        self.add_piece_btn = QPushButton("Adicionar Peça à Lista")
-        main_layout.addWidget(self.add_piece_btn)
+
+        # Container para o layout superior
+        top_container_widget = QWidget()
+        top_container_widget.setLayout(top_h_layout)
 
         # --- Grupo 5: Lista de Peças ---
         list_group = QGroupBox("5. Lista de Peças para Produção")
@@ -358,6 +302,9 @@ class MainWindow(QMainWindow):
         self.table_headers = [col.replace('_', ' ').title() for col in self.colunas_df] + ["Ações"]
         self.pieces_table.setColumnCount(len(self.table_headers))
         self.pieces_table.setHorizontalHeaderLabels(self.table_headers)
+        self.pieces_table.verticalHeader().setDefaultSectionSize(28) 
+        self.pieces_table.setMinimumHeight(120)
+       
         list_layout.addWidget(self.pieces_table)
         self.dir_label = QLabel("Nenhum projeto ativo. Inicie um novo projeto.")
         self.dir_label.setStyleSheet("font-style: italic; color: grey;")
@@ -376,26 +323,47 @@ class MainWindow(QMainWindow):
         process_buttons_layout.addWidget(self.process_all_btn)
         list_layout.addLayout(process_buttons_layout)
         list_group.setLayout(list_layout)
-        main_layout.addWidget(list_group, stretch=5) # <<< AUMENTA A PRIORIDADE DE EXPANSÃO DA LISTA
-        
-        # --- Barra de Progresso e Log ---
-        self.progress_bar = QProgressBar()
-        main_layout.addWidget(self.progress_bar)
+
+        # --- Barra de Log/Execução ---
         log_group = QGroupBox("Log de Execução")
         log_layout = QVBoxLayout()
         self.log_text = QTextEdit()
+        self.log_text.setObjectName("logExecution") # Adicionado para estilo
         log_layout.addWidget(self.log_text)
         log_group.setLayout(log_layout)
-        main_layout.addWidget(log_group, stretch=1) # <<< DÁ UMA PRIORIDADE MENOR AO LOG
+        
+        # <<< MUDANÇA ESTRUTURAL 2: USO DO QSPLITTER PARA O LAYOUT VERTICAL >>>
+        v_splitter = QSplitter(Qt.Vertical)
+        #v_splitter.addWidget(top_container_widget)
+        v_splitter.addWidget(list_group)
+        v_splitter.addWidget(log_group)
 
+        v_splitter.setStretchFactor(0, 1) 
+        v_splitter.setStretchFactor(1, 0)
+        v_splitter.setSizes([400, 50])
+        
+        v_splitter.setStretchFactor(0, 0) # Painel superior não estica
+        v_splitter.setStretchFactor(1, 1) # Tabela de peças é a principal a esticar
+        v_splitter.setSizes([300, 400, 150]) # Alturas iniciais (ajuste conforme preferência)
+
+        self.add_piece_btn = QPushButton("Adicionar Peça à Lista")
+        main_layout.addWidget(top_container_widget)
+        main_layout.addWidget(v_splitter)
+        main_layout.addWidget(self.add_piece_btn)
+
+        # --- Barra de Progresso ---
+        self.progress_bar = QProgressBar()
+        main_layout.addWidget(self.progress_bar)
+        
+        self.statusBar().showMessage("Pronto")
+        
         # --- Aplicação de Estilos Específicos via objectName ---
         self.start_project_btn.setObjectName("primaryButton")
         self.conclude_project_btn.setObjectName("successButton")
         self.calculate_nesting_btn.setObjectName("warningButton")
 
-        self.statusBar().showMessage("Pronto")
-        
-        # --- Conexões de Sinais e Slots (Eventos) ---
+    def connect_signals(self):
+        """Método para centralizar todas as conexões de sinais e slots."""
         self.calculate_nesting_btn.clicked.connect(self.open_nesting_dialog)
         self.start_project_btn.clicked.connect(self.start_new_project)
         self.history_btn.clicked.connect(self.show_history_dialog)
@@ -411,22 +379,11 @@ class MainWindow(QMainWindow):
         self.process_all_btn.clicked.connect(self.start_all_generation)
         self.conclude_project_btn.clicked.connect(self.conclude_project)
         self.export_excel_btn.clicked.connect(self.export_project_to_excel)
-        
-        # --- Estado Inicial da UI ---
-        self.set_initial_button_state()
-        self.update_dimension_fields(self.forma_combo.currentText())
 
     # =====================================================================
-    # <<< INÍCIO DAS FUNÇÕES (MÉTODOS) DA CLASSE MainWindow >>>
+    # O RESTANTE DAS FUNÇÕES (MÉTODOS) PERMANECE O MESMO
+    # ... (Cole aqui todos os seus métodos de 'start_new_project' até 'delete_furo_temp')
     # =====================================================================
-    
-    # ... (TODOS OS SEUS MÉTODOS CONTINUAM IGUAIS ATÉ O update_table_display)
-    # Exemplo: start_new_project, set_initial_button_state, etc.
-    # Vou omiti-los aqui para economizar espaço, mas eles devem permanecer no seu código.
-    # ...
-    # COPIE E COLE TODOS OS SEUS MÉTODOS DE start_new_project ATÉ set_buttons_enabled_on_process AQUI
-    # ...
-
     def start_new_project(self):
         parent_dir = QFileDialog.getExistingDirectory(self, "Selecione a Pasta Principal para o Novo Projeto")
         if not parent_dir: return
@@ -704,18 +661,16 @@ class MainWindow(QMainWindow):
         self.set_initial_button_state()
         combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
         
-        # --- CORREÇÃO: Método robusto para limpar a tabela antes de atualizar ---
         self.pieces_table.blockSignals(True)
-        while self.pieces_table.rowCount() > 0:
-            self.pieces_table.removeRow(0)
+        self.pieces_table.setRowCount(0)
         self.pieces_table.blockSignals(False)
+
         if combined_df.empty:
-            header = self.pieces_table.horizontalHeader()
-            header.setSectionResizeMode(QHeaderView.ResizeToContents)
-            header.setStretchLastSection(True)
             return
+
         self.pieces_table.setRowCount(len(combined_df))
-        self.pieces_table.verticalHeader().setDefaultSectionSize(40) # <<< ALTURA DE LINHA OTIMIZADA >>>
+        self.pieces_table.verticalHeader().setDefaultSectionSize(40)
+        
         for i, row in combined_df.iterrows():
             for j, col in enumerate(self.colunas_df):
                 value = row.get(col)
@@ -726,7 +681,7 @@ class MainWindow(QMainWindow):
                 else:
                     display_value = str(value)
                 item = QTableWidgetItem(display_value)
-                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft) # <<< ALINHAMENTO MELHORADO >>>
+                item.setTextAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 self.pieces_table.setItem(i, j, item)
 
             action_widget = QWidget()
@@ -741,14 +696,30 @@ class MainWindow(QMainWindow):
             self.pieces_table.setCellWidget(i, len(self.colunas_df), action_widget)
 
         header = self.pieces_table.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeToContents)
-        header.setStretchLastSection(True)
-    
+        header_map = {self.table_headers[i]: i for i in range(len(self.table_headers))}
+
+        for col_name in ['Forma', 'Espessura', 'Qtd', 'Furos']:
+            if col_name in header_map:
+                header.setSectionResizeMode(header_map[col_name], QHeaderView.ResizeToContents)
+        
+        if 'Nome Arquivo' in header_map:
+            header.setSectionResizeMode(header_map['Nome Arquivo'], QHeaderView.Stretch)
+            
+        dim_cols = ['Largura', 'Altura', 'Diametro', 'Rt Base', 'Rt Height', 
+                    'Trapezoid Large Base', 'Trapezoid Small Base', 'Trapezoid Height']
+        for col_name in dim_cols:
+            if col_name in header_map:
+                 header.setSectionResizeMode(header_map[col_name], QHeaderView.ResizeToContents)
+
+        if 'Ações' in header_map:
+            header.setSectionResizeMode(header_map['Ações'], QHeaderView.ResizeToContents)
+
     def edit_row(self, row_index):
         len_excel = len(self.excel_df)
         is_from_excel = row_index < len_excel
         df_source = self.excel_df if is_from_excel else self.manual_df
         local_index = row_index if is_from_excel else row_index - len_excel
+        if local_index >= len(df_source): return # Proteção contra índice inválido
         piece_data = df_source.iloc[local_index]
         self.nome_input.setText(str(piece_data.get('nome_arquivo', '')))
         self.espessura_input.setText(str(piece_data.get('espessura', '')))
@@ -776,6 +747,7 @@ class MainWindow(QMainWindow):
         is_from_excel = row_index < len_excel
         df_source = self.excel_df if is_from_excel else self.manual_df
         local_index = row_index if is_from_excel else row_index - len_excel
+        if local_index >= len(df_source): return # Proteção contra índice inválido
         piece_name = df_source.iloc[local_index]['nome_arquivo']
         df_source.drop(df_source.index[local_index], inplace=True)
         df_source.reset_index(drop=True, inplace=True)
@@ -876,15 +848,16 @@ class MainWindow(QMainWindow):
         self.furos_table.resizeColumnsToContents()
     
     def delete_furo_temp(self, row_index):
-        del self.furos_atuais[row_index]
-        self.update_furos_table()
+        if 0 <= row_index < len(self.furos_atuais):
+            del self.furos_atuais[row_index]
+            self.update_furos_table()
 
 # =============================================================================
 # PONTO DE ENTRADA DA APLICAÇÃO
 # =============================================================================
 def main():
     app = QApplication(sys.argv)
-    app.setStyleSheet(INOVA_PROCESS_STYLE) # Aplica o tema escuro em toda a aplicação
+    app.setStyleSheet(INOVA_PROCESS_STYLE)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
