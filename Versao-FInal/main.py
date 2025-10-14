@@ -20,6 +20,7 @@ from history_manager import HistoryManager
 from history_dialog import HistoryDialog
 from processing import ProcessThread
 from nesting_dialog import NestingDialog
+from dxf_engine import get_dxf_bounding_box # <<< IMPORTAÇÃO NECESSÁRIA >>>
 from calculo_cortes import calcular_plano_de_corte
 
 # =============================================================================
@@ -215,8 +216,10 @@ class MainWindow(QMainWindow):
         self.file_label = QLabel("Nenhum projeto ativo.")
         file_button_layout = QHBoxLayout()
         self.select_file_btn = QPushButton("Selecionar Planilha")
+        self.import_dxf_btn = QPushButton("Importar DXF(s)") # <<< NOVO BOTÃO >>>
         self.clear_excel_btn = QPushButton("Limpar Planilha")
         file_button_layout.addWidget(self.select_file_btn)
+        file_button_layout.addWidget(self.import_dxf_btn)
         file_button_layout.addWidget(self.clear_excel_btn)
         file_layout.addWidget(self.file_label)
         file_layout.addLayout(file_button_layout)
@@ -369,6 +372,7 @@ class MainWindow(QMainWindow):
         self.start_project_btn.clicked.connect(self.start_new_project)
         self.history_btn.clicked.connect(self.show_history_dialog)
         self.select_file_btn.clicked.connect(self.select_file)
+        self.import_dxf_btn.clicked.connect(self.import_dxfs) # <<< CONEXÃO DO SINAL >>>
         self.clear_excel_btn.clicked.connect(self.clear_excel_data)
         self.generate_code_btn.clicked.connect(self.generate_piece_code)
         self.add_piece_btn.clicked.connect(self.add_manual_piece)
@@ -413,6 +417,7 @@ class MainWindow(QMainWindow):
         self.start_project_btn.setEnabled(True)
         self.history_btn.setEnabled(True)
         self.select_file_btn.setEnabled(is_project_active)
+        self.import_dxf_btn.setEnabled(is_project_active) # <<< ATUALIZAÇÃO DE ESTADO >>>
         self.clear_excel_btn.setEnabled(is_project_active and not self.excel_df.empty)
         self.generate_code_btn.setEnabled(is_project_active)
         self.add_piece_btn.setEnabled(is_project_active)
@@ -647,6 +652,7 @@ class MainWindow(QMainWindow):
         self.start_project_btn.setEnabled(enabled)
         self.history_btn.setEnabled(enabled)
         self.select_file_btn.setEnabled(enabled and is_project_active)
+        self.import_dxf_btn.setEnabled(enabled and is_project_active) # <<< ATUALIZAÇÃO DE ESTADO >>>
         self.clear_excel_btn.setEnabled(enabled and is_project_active and not self.excel_df.empty)
         self.generate_code_btn.setEnabled(enabled and is_project_active)
         self.add_piece_btn.setEnabled(enabled and is_project_active)
@@ -807,6 +813,44 @@ class MainWindow(QMainWindow):
                 self.file_label.setText(f"Planilha: {os.path.basename(file_path)}"); self.update_table_display()
             except Exception as e: QMessageBox.critical(self, "Erro de Leitura", f"Falha ao ler o arquivo: {e}")
     
+    def clear_excel_data(self):
+        self.excel_df = pd.DataFrame(columns=self.colunas_df); self.file_label.setText("Nenhuma planilha selecionada"); self.update_table_display()
+
+    def import_dxfs(self):
+        if not self.project_directory:
+            QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um projeto antes de importar arquivos DXF.")
+            return
+
+        file_paths, _ = QFileDialog.getOpenFileNames(self, "Selecionar Arquivos DXF", "", "DXF Files (*.dxf)")
+        if not file_paths:
+            return
+
+        imported_count = 0
+        for file_path in file_paths:
+            largura, altura = get_dxf_bounding_box(file_path)
+
+            if largura is not None and altura is not None:
+                nome_arquivo = os.path.splitext(os.path.basename(file_path))[0]
+                
+                new_piece = {
+                    'nome_arquivo': nome_arquivo,
+                    'forma': 'rectangle', # Sempre será retângulo
+                    'espessura': 0.0, # Padrão, para ser editado pelo usuário
+                    'qtd': 1, # Padrão
+                    'largura': round(largura, 2),
+                    'altura': round(altura, 2),
+                    'diametro': 0.0, 'rt_base': 0.0, 'rt_height': 0.0,
+                    'trapezoid_large_base': 0.0, 'trapezoid_small_base': 0.0, 'trapezoid_height': 0.0,
+                    'furos': [] # Furos não são importados neste contexto
+                }
+                self.manual_df = pd.concat([self.manual_df, pd.DataFrame([new_piece])], ignore_index=True)
+                imported_count += 1
+            else:
+                self.log_text.append(f"AVISO: Não foi possível obter as dimensões do arquivo '{os.path.basename(file_path)}'. Pode estar vazio ou corrompido.")
+        
+        self.log_text.append(f"--- {imported_count} arquivo(s) DXF importado(s) com sucesso. ---")
+        self.update_table_display()
+
     def clear_excel_data(self):
         self.excel_df = pd.DataFrame(columns=self.colunas_df); self.file_label.setText("Nenhuma planilha selecionada"); self.update_table_display()
     

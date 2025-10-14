@@ -4,7 +4,9 @@ import re
 import math
 import io
 import ezdxf
+from ezdxf import bbox
 
+# --- FUNÇÕES DE CRIAÇÃO DE DXF ---
 def create_dxf_drawing(params: dict):
     """Gera um desenho DXF a partir de um dicionário de parâmetros já preparado."""
     try:
@@ -88,3 +90,28 @@ def prepare_and_validate_dxf_data(raw_data: dict): # <<<--- NOME CORRIGIDO AQUI
             })
             
     return params, None
+
+# --- FUNÇÕES DE LEITURA DE DXF ---
+
+def get_dxf_bounding_box(file_path: str):
+    """
+    Lê um arquivo DXF e calcula o bounding box (largura e altura) de seu conteúdo.
+
+    :param file_path: Caminho para o arquivo DXF.
+    :return: Uma tupla (largura, altura) ou (None, None) em caso de erro.
+    """
+    try:
+        doc = ezdxf.readfile(file_path)
+        msp = doc.modelspace()
+
+        # Calcula o bounding box de todas as entidades no modelspace
+        cache = bbox.Cache()
+        overall_bbox = bbox.extents(msp, cache=cache)
+
+        if not overall_bbox.has_data:
+            return None, None # Retorna None se o DXF estiver vazio
+
+        return overall_bbox.size.x, overall_bbox.size.y
+    except (IOError, ezdxf.DXFStructureError) as e:
+        print(f"Erro ao ler ou processar o DXF '{file_path}': {e}")
+        return None, None

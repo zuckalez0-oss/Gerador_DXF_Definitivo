@@ -57,19 +57,42 @@ class CuttingPlanWidget(QWidget):
 
 
 class PlanVisualizationDialog(QDialog):
-    def __init__(self, chapa_largura, chapa_altura, plano, parent=None):
+    def __init__(self, chapa_largura, chapa_altura, plano_info, offset, parent=None):
         super().__init__(parent)
         self.chapa_largura = chapa_largura
         self.chapa_altura = chapa_altura
-        self.plano = plano
+        self.plano = plano_info['plano']
+        self.resumo_pecas = plano_info['resumo_pecas']
+        self.offset = offset
         self.setWindowTitle("Visualização Detalhada do Plano de Corte")
         self.setMinimumSize(600, 800)
         
         layout = QVBoxLayout(self)
-        cutting_widget = CuttingPlanWidget(chapa_largura, chapa_altura, plano)
+
+        # --- INÍCIO: NOVOS LABELS DE INFORMAÇÃO ---
+        info_group = QGroupBox("Detalhes do Plano")
+        info_layout = QVBoxLayout()
+
+        chapa_label = QLabel(f"<b>Dimensões da Chapa:</b> {self.chapa_largura} x {self.chapa_altura} mm")
+        info_layout.addWidget(chapa_label)
+
+        pecas_label_titulo = QLabel("<b>Peças neste plano:</b>")
+        info_layout.addWidget(pecas_label_titulo)
+
+        for item in self.resumo_pecas:
+            dimensoes_com_offset = item['tipo'].split('x')
+            largura_real = float(dimensoes_com_offset[0]) - self.offset
+            altura_real = float(dimensoes_com_offset[1]) - self.offset
+            texto_peca = f"- {item['qtd']}x de {largura_real:.0f} x {altura_real:.0f} mm"
+            info_layout.addWidget(QLabel(texto_peca))
+
+        info_group.setLayout(info_layout)
+        layout.addWidget(info_group)
+        # --- FIM: NOVOS LABELS DE INFORMAÇÃO ---
+
+        cutting_widget = CuttingPlanWidget(chapa_largura, chapa_altura, self.plano)
         layout.addWidget(cutting_widget)
 
-        # Botões
         buttons_layout = QHBoxLayout()
         btn_export_pdf = QPushButton("Exportar para PDF")
         btn_export_pdf.clicked.connect(self.export_to_pdf)
@@ -87,7 +110,7 @@ class PlanVisualizationDialog(QDialog):
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar PDF do Plano de Corte", default_path, "PDF Files (*.pdf)")
         if save_path:
             c = canvas.Canvas(save_path, pagesize=A4)
-            pdf_generator.gerar_pdf_plano_de_corte(c, self.chapa_largura, self.chapa_altura, self.plano)
+            pdf_generator.gerar_pdf_plano_de_corte(c, self.chapa_largura, self.chapa_altura, self.plano) # O plano é o que importa aqui
             c.save()
             QMessageBox.information(self, "Sucesso", f"PDF do plano de corte salvo em:\n{save_path}")
 
@@ -116,6 +139,17 @@ class NestingDialog(QDialog):
         self.main_layout.addWidget(input_group)
         
         # Botões de Ação
+        # --- INÍCIO: BOTÃO DE EXPANSÃO ---
+        title_bar_layout = QHBoxLayout()
+        title_bar_layout.addStretch()
+        self.toggle_fullscreen_btn = QPushButton("🗖") # Símbolo de maximizar/restaurar
+        self.toggle_fullscreen_btn.setFixedSize(30, 30)
+        self.toggle_fullscreen_btn.setToolTip("Maximizar / Restaurar Janela")
+        self.toggle_fullscreen_btn.clicked.connect(self.toggle_fullscreen)
+        title_bar_layout.addWidget(self.toggle_fullscreen_btn)
+        self.main_layout.addLayout(title_bar_layout)
+        # --- FIM: BOTÃO DE EXPANSÃO ---
+
         action_layout = QHBoxLayout()
         self.calculate_btn = QPushButton("Calcular")
         self.calculate_btn.clicked.connect(self.run_calculation)
@@ -140,6 +174,13 @@ class NestingDialog(QDialog):
 
         self.main_layout.addWidget(results_group)
         self.main_layout.addWidget(scroll)
+
+    def toggle_fullscreen(self):
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
+
 
     def run_calculation(self):
         try:
@@ -226,8 +267,8 @@ class NestingDialog(QDialog):
             plan_label = QLabel(f"Plano {i+1}: {plano_info['repeticoes']}x | Peças: {resumo_pecas_str}")
             
             view_btn = QPushButton("Ver Detalhes")
-            # Usa lambda para capturar os dados corretos do plano para o dialog
-            view_btn.clicked.connect(lambda _, p=plano_info['plano'], w=chapa_w, h=chapa_h: self.show_plan_visualization(p, w, h))
+            # --- MUDANÇA: Passa o dicionário 'plano_info' completo e o offset ---
+            view_btn.clicked.connect(lambda _, p_info=plano_info, w=chapa_w, h=chapa_h: self.show_plan_visualization(p_info, w, h))
             
             plano_layout.addWidget(plan_label)
             plano_layout.addStretch()
@@ -238,6 +279,7 @@ class NestingDialog(QDialog):
         group_box.setLayout(group_layout)
         self.results_scroll_layout.addWidget(group_box)
 
-    def show_plan_visualization(self, plano, chapa_w, chapa_h):
-        dialog = PlanVisualizationDialog(chapa_w, chapa_h, plano, self)
+    def show_plan_visualization(self, plano_info, chapa_w, chapa_h):
+        offset = float(self.offset_input.text())
+        dialog = PlanVisualizationDialog(chapa_w, chapa_h, plano_info, offset, self)
         dialog.exec_()
