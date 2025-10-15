@@ -155,7 +155,9 @@ def desenhar_retangulo(c, row):
         for i in range(1, len(dim_points_y)):
             start_y, end_y = dim_points_y[i-1], dim_points_y[i]
             if (end_y - start_y)>0.01: desenhar_cota_vertical(c, y0+start_y*escala, y0+end_y*escala, x_pos_cota, formatar_numero(end_y-start_y))
-        desenhar_cota_diametro_furo(c, x0+furos[0]['x']*escala, y0+furos[0]['y']*escala, (furos[0]['diam']/2)*escala, furos[0]['diam'])
+        # --- CORREÇÃO: Só desenha a cota do furo se a lista de furos não estiver vazia ---
+        if furos:
+            desenhar_cota_diametro_furo(c, x0+furos[0]['x']*escala, y0+furos[0]['y']*escala, (furos[0]['diam']/2)*escala, furos[0]['diam'])
         
     y_cota_total = y0 - dist_cota_total
     c.line(x0, y0, x0, y_cota_total-overshoot)
@@ -266,8 +268,17 @@ def desenhar_trapezio(c, row):
     c.line(p1[0], p1[1], x_cota_v-overshoot, p1[1])
     c.line(p4[0], p4[1], x_cota_v-overshoot, p4[1])
     desenhar_cota_vertical(c, p1[1], p4[1], x_cota_v, formatar_numero(height))
+color_map = {
+            'tipo1': (0.2, 0.6, 0.2),  # Verde
+            'tipo2': (0.2, 0.2, 0.7),  # Azul
+            'tipo3': (0.7, 0.2, 0.2),  # Vermelho
+            'tipo4': (0.6, 0.6, 0.2),  # Amarelo
+            'tipo5': (0.6, 0.2, 0.6),  # Roxo
+            'tipo6': (0.2, 0.6, 0.6),  # Ciano
 
-def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
+            # Adicione mais tipos e cores conforme necessário
+        }
+def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano, color_map_qt=None):
     """
     Desenha um plano de corte (nesting) em uma página de PDF.
     
@@ -275,6 +286,7 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
     :param chapa_largura: Largura real da chapa.
     :param chapa_altura: Altura real da chapa.
     :param plano: Lista de dicionários de peças, cada um com 'x', 'y', 'largura', 'altura'.
+    :param color_map_qt: Opcional. Dicionário de QColor para mapear cores da UI.
     """
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 20*mm, "Plano de Corte da Chapa")
@@ -310,10 +322,13 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
         rect_y = (y0 + dh) - (y * escala) - rect_h
 
         # Define a cor da peça
-        q_color = color_map.get(tipo_key) if color_map else None
-        if q_color:
-            c.setFillColorRGB(q_color.redF(), q_color.greenF(), q_color.blueF())
+
+        if color_map_qt and tipo_key in color_map_qt:
+            q_color = color_map_qt[tipo_key]
+            c.setFillColorRGB(q_color.redF(), q_color.greenF(), q_color.blueF()) # Converte de QColor para reportlab
         else:
+            # Fallback para o mapa de cores interno se o mapa da UI não for fornecido ou não tiver a chave
+            rgb_color = color_map.get(tipo_key, default_color)
             c.setFillColorRGB(*default_color)
 
         c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
@@ -333,7 +348,7 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
     x_cota_total = x0 - dist_cota
     desenhar_cota_vertical(c, y0, y0 + dh, x_cota_total, formatar_numero(chapa_altura))
 
-def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, chapa_altura, plano_idx):
+def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, chapa_altura, plano_idx, color_map):
     """
     Função auxiliar para desenhar um único plano de corte com seus detalhes em uma área específica da página.
     Retorna a posição Y final após o desenho.
@@ -360,15 +375,62 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
     # O rect é desenhado de (x, y) com largura e altura, então o y precisa ser o canto inferior esquerdo.
     c.rect(x_origem_desenho, y_origem_desenho - dh, dw, dh, stroke=1, fill=0)
     c.setStrokeColorRGB(0, 0, 0)
-    c.setFillColorRGB(0.66, 0.26, 0.26)
+    
+    # --- INÍCIO: CORREÇÃO DE CORES DAS PEÇAS ---
     for peca in plano_info['plano']:
-        # A coordenada Y da peça já está invertida. Para desenhar, precisamos do canto inferior esquerdo do retângulo.
+        # Define a cor da peça usando o color_map
+        q_color = color_map.get(peca['tipo_key'])
+        if q_color:
+            c.setFillColorRGB(q_color.redF(), q_color.greenF(), q_color.blueF())
+        else:
+            c.setFillColorRGB(0.66, 0.26, 0.26) # Cor padrão de fallback
+        
+        # --- INÍCIO: DESENHO CONDICIONAL (RETÂNGULO OU CÍRCULO) ---
         rect_y_inferior = y_origem_desenho - (peca['y'] * escala) - (peca['altura'] * escala)
-        c.rect(x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
+        if peca.get('forma') == 'circle':
+            diametro_original = peca.get('diametro', 0)
+            raio_desenhado = (diametro_original * escala) / 2
+            centro_x = (x_origem_desenho + peca['x'] * escala) + (peca['largura'] * escala) / 2
+            centro_y = rect_y_inferior + (peca['altura'] * escala) / 2
+            c.circle(centro_x, centro_y, raio_desenhado, stroke=1, fill=1)
+        elif peca.get('forma') == 'paired_triangle':
+            # Desenha dois triângulos opostos
+            x, y, w, h = x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala
+            path = c.beginPath()
+            path.moveTo(x, y)
+            path.lineTo(x + w, y)
+            path.lineTo(x, y + h)
+            path.close()
+            c.drawPath(path, stroke=1, fill=1)
+            path = c.beginPath()
+            path.moveTo(x + w, y + h)
+            path.lineTo(x, y + h)
+            path.lineTo(x + w, y)
+            path.close()
+            c.drawPath(path, stroke=1, fill=1)
+        else: # 'rectangle'
+            c.rect(x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
+        # --- FIM: DESENHO CONDICIONAL ---
+
+    # Desenha as sobras
+    sobras = plano_info.get('sobras', [])
+    if sobras:
+        for sobra in sobras:
+            if sobra.get('tipo_sobra') == 'aproveitavel':
+                c.setFillColorRGB(0.39, 0.39, 0.39, 0.6) # Cinza escuro semi-transparente
+                c.setStrokeColorRGB(0.2, 0.2, 0.2)
+            else:
+                c.setFillColorRGB(0.9, 0.9, 0.9, 0.5) # Cinza claro semi-transparente
+                c.setStrokeColorRGB(0.5, 0.5, 0.5)
+            sobra_y_inferior = y_origem_desenho - (sobra['y'] * escala) - (sobra['altura'] * escala)
+            c.rect(x_origem_desenho + sobra['x'] * escala, sobra_y_inferior, sobra['largura'] * escala, sobra['altura'] * escala, stroke=1, fill=1)
+
 
     # Área da lista de peças (à direita)
     x_lista = (PAGE_WIDTH / 2) + (MARGEM_GERAL / 2)
     y_lista = y_cursor
+    # --- CORREÇÃO: Garante que o texto seja preto ---
+    c.setFillColorRGB(0, 0, 0)
     c.setFont("Helvetica-Bold", 9)
     c.drawString(x_lista, y_lista, "Peças neste plano:")
     y_lista -= 4*mm
@@ -382,16 +444,48 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
         c.drawString(x_lista, y_lista, texto_peca)
         y_lista -= 3.5*mm
 
+    # --- INÍCIO: ADIÇÃO DO RESUMO DE SOBRAS NO PDF ---
+    y_lista -= 5*mm # Espaço antes das sobras
+    sobras_aproveitaveis = [s for s in sobras if s.get('tipo_sobra') == 'aproveitavel']
+    sobras_sucata = [s for s in sobras if s.get('tipo_sobra') != 'aproveitavel']
+
+    if sobras_aproveitaveis:
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(x_lista, y_lista, "Sobras Aproveitáveis:")
+        y_lista -= 4*mm
+        c.setFont("Helvetica", 8)
+        for sobra in sobras_aproveitaveis:
+            c.drawString(x_lista, y_lista, f"- {sobra['largura']:.0f} x {sobra['altura']:.0f} mm")
+            y_lista -= 3.5*mm
+        y_lista -= 2*mm # Espaço extra
+
+    if sobras_sucata:
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(x_lista, y_lista, "Sobras (Sucata):")
+        y_lista -= 4*mm
+        c.setFont("Helvetica", 8)
+        for sobra in sobras_sucata:
+            c.drawString(x_lista, y_lista, f"- {sobra['largura']:.0f} x {sobra['altura']:.0f} mm")
+            y_lista -= 3.5*mm
+    # --- FIM: ADIÇÃO DO RESUMO DE SOBRAS NO PDF ---
+
     return y_cursor - area_desenho_h - 5*mm # Retorna a nova posição Y
 
 def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, chapa_altura):
     """
     Gera um relatório PDF completo com todos os planos de corte para todas as espessuras.
     """
+    # --- INÍCIO: MELHORIA NO DESIGN DO CABEÇALHO ---
+    c.saveState()
+    c.setFillColorRGB(0.13, 0.13, 0.13) # Fundo cinza escuro
+    c.rect(0, PAGE_HEIGHT - 25*mm, PAGE_WIDTH, 25*mm, stroke=0, fill=1)
+    c.setFillColorRGB(1, 1, 1) # Texto branco
     c.setFont("Helvetica-Bold", 16)
-    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - MARGEM_GERAL, "Relatório de Aproveitamento de Chapa")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 12*mm, "Relatório de Aproveitamento de Chapa")
     c.setFont("Helvetica", 11)
-    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - MARGEM_GERAL - 6*mm, f"Dimensões da Chapa: {formatar_numero(chapa_largura)} x {formatar_numero(chapa_altura)} mm")
+    c.drawCentredString(PAGE_WIDTH / 2, PAGE_HEIGHT - 19*mm, f"Dimensões da Chapa: {formatar_numero(chapa_largura)} x {formatar_numero(chapa_altura)} mm")
+    c.restoreState()
+    # --- FIM: MELHORIA NO DESIGN DO CABEÇALHO ---
 
     y_cursor = PAGE_HEIGHT - MARGEM_GERAL - 20*mm
 
@@ -402,19 +496,49 @@ def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, ch
             y_cursor = PAGE_HEIGHT - MARGEM_GERAL
 
         # Cabeçalho da Espessura
+        c.saveState()
+        c.setFillColorRGB(0.9, 0.9, 0.9) # Fundo cinza claro
         c.setStrokeColorRGB(0,0,0)
-        c.setFillColorRGB(0.9, 0.9, 0.9)
         c.rect(MARGEM_GERAL, y_cursor - 5*mm, PAGE_WIDTH - 2*MARGEM_GERAL, 7*mm, stroke=1, fill=1)
-        c.setFillColorRGB(0,0,0)
+        c.setFillColorRGB(0,0,0) # Texto preto
         c.setFont("Helvetica-Bold", 12)
         c.drawString(MARGEM_GERAL + 3*mm, y_cursor - 3.5*mm, f"Espessura: {espessura} mm")
+        c.restoreState()
         y_cursor -= 8*mm
 
+        # --- CORREÇÃO: Garante que o texto seja preto ---
+        c.setFillColorRGB(0, 0, 0)
         # Sumário da Espessura
         c.setFont("Helvetica", 10)
         sumario = f"Total de Chapas: {resultado['total_chapas']}   |   Aproveitamento Geral: {resultado['aproveitamento_geral']}"
         c.drawString(MARGEM_GERAL, y_cursor, sumario)
-        y_cursor -= 10*mm
+        
+        # --- INÍCIO: CÁLCULO E EXIBIÇÃO DO PESO TOTAL DAS CHAPAS ---
+        peso_total_chapas_kg = (chapa_largura / 1000) * (chapa_altura / 1000) * espessura * 7.85 * resultado['total_chapas']
+        c.setFont("Helvetica-Bold", 10)
+        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso Total das Chapas: {peso_total_chapas_kg:.2f} kg")
+        # --- FIM: CÁLCULO E EXIBIÇÃO DO PESO TOTAL DAS CHAPAS ---
+        y_cursor -= 8*mm
+
+        # --- INÍCIO: RESUMO DE PESO DAS SOBRAS ---
+        from collections import Counter
+        todas_as_sobras = []
+        for plano in resultado['planos_unicos']:
+            todas_as_sobras.extend(plano.get('sobras', []) * plano['repeticoes'])
+        
+        if todas_as_sobras:
+            sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
+            sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
+            area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
+            area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
+            peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
+            peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
+            
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(MARGEM_GERAL, y_cursor, f"Peso Sobras Aproveitáveis: {peso_aproveitavel_kg:.2f} kg")
+            c.drawString(MARGEM_GERAL + 70*mm, y_cursor, f"Peso Sobras (Sucata): {peso_sucata_kg:.2f} kg")
+            y_cursor -= 5*mm
+        # --- FIM: RESUMO DE PESO DAS SOBRAS ---
 
         # Desenha cada plano de corte único
         for i, plano_info in enumerate(resultado['planos_unicos']):
@@ -428,7 +552,7 @@ def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, ch
                 c.drawString(MARGEM_GERAL, y_cursor, f"Continuação - Espessura: {espessura} mm")
                 y_cursor -= 10*mm
 
-            y_cursor = _desenhar_plano_unico_com_detalhes(c, y_cursor, plano_info, chapa_largura, chapa_altura, i)
+            y_cursor = _desenhar_plano_unico_com_detalhes(c, y_cursor, plano_info, chapa_largura, chapa_altura, i, resultado['color_map'])
             
             # Linha separadora
             if i < len(resultado['planos_unicos']) - 1:

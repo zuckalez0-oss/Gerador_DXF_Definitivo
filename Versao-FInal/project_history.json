@@ -162,7 +162,7 @@
     },
     "1922": {
         "project_number": "1922",
-        "save_date": "10/10/2025 08:26:47",
+        "save_date": "15/10/2025 07:59:19",
         "pieces": [
             {
                 "nome_arquivo": "1922_DES1818_12.70",
@@ -310,6 +310,75 @@
                         "y": 180.0
                     }
                 ],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "pp",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 200.0,
+                "largura": 544.0,
+                "altura": 540.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 15.0,
+                        "x": 35.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 509.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 509.0,
+                        "y": 505.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 35.0,
+                        "y": 505.0
+                    }
+                ],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "Pliukus",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 50.0,
+                "largura": 52.0,
+                "altura": 1000.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1922"
+            },
+            {
+                "nome_arquivo": "Lukus",
+                "forma": "rectangle",
+                "espessura": 12.7,
+                "qtd": 200.0,
+                "largura": 252.0,
+                "altura": 2000.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
                 "project_number": "1922"
             }
         ]
@@ -625,6 +694,215 @@
                     }
                 ],
                 "project_number": "1927"
+            }
+        ]
+    },
+    "40028922": {
+        "project_number": "40028922",
+        "save_date": "15/10/2025 09:00:02",
+        "pieces": [
+            {
+                "nome_arquivo": "Plumbo",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 100.0,
+                "largura": 56.0,
+                "altura": 2000.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "40028922"
+            },
+            {
+                "nome_arquivo": "Plumbo2",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 100.0,
+                "largura": 100.0,
+                "altura": 1000.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 85.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 85.0,
+                        "y": 985.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 985.0
+                    }
+                ],
+                "project_number": "40028922"
+            },
+            {
+                "nome_arquivo": "Plumbo3",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 300.0,
+                "largura": 500.0,
+                "altura": 500.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 15.0,
+                        "x": 35.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 465.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 465.0,
+                        "y": 465.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 35.0,
+                        "y": 465.0
+                    }
+                ],
+                "project_number": "40028922"
+            },
+            {
+                "nome_arquivo": "Plumbo4",
+                "forma": "rectangle",
+                "espessura": 2.0,
+                "qtd": 50.0,
+                "largura": 152.0,
+                "altura": 2500.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 137.0,
+                        "y": 15.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 137.0,
+                        "y": 2485.0
+                    },
+                    {
+                        "diam": 15.0,
+                        "x": 15.0,
+                        "y": 2485.0
+                    }
+                ],
+                "project_number": "40028922"
+            }
+        ]
+    },
+    "1585": {
+        "project_number": "1585",
+        "save_date": "15/10/2025 10:21:32",
+        "pieces": [
+            {
+                "nome_arquivo": "Gloes",
+                "forma": "right_triangle",
+                "espessura": 2.0,
+                "qtd": 100.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 0.0,
+                "rt_base": 200.0,
+                "rt_height": 100.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1585"
+            },
+            {
+                "nome_arquivo": "VDS1837",
+                "forma": "circle",
+                "espessura": 2.0,
+                "qtd": 100.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 150.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1585"
+            },
+            {
+                "nome_arquivo": "VDS1838",
+                "forma": "circle",
+                "espessura": 2.0,
+                "qtd": 20.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 200.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 50.0,
+                        "x": 100.0,
+                        "y": 100.0
+                    }
+                ],
+                "project_number": "1585"
+            },
+            {
+                "nome_arquivo": "VDS1839",
+                "forma": "right_triangle",
+                "espessura": 2.0,
+                "qtd": 100.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 0.0,
+                "rt_base": 300.0,
+                "rt_height": 150.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [],
+                "project_number": "1585"
             }
         ]
     }

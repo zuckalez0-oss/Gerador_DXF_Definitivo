@@ -1,0 +1,114 @@
+2025-10-15 10:43:15,100 - INFO - Thread de cálculo iniciada.
+2025-10-15 10:43:15,100 - DEBUG - Iniciando cálculo para espessura 2.0 com 6 tipos de peças.
+2025-10-15 10:43:15,100 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0.
+2025-10-15 10:43:15,100 - WARNING - Muitas peças (370). Usando modo rápido (apenas MaxRectsBssf).
+2025-10-15 10:43:15,100 - DEBUG - Testando algoritmo: MaxRectsBssf
+2025-10-15 10:43:15,100 - DEBUG -   Peças alocadas: 42/370. Adicionando nova chapa.
+2025-10-15 10:43:15,100 - DEBUG -   Peças alocadas: 86/370. Adicionando nova chapa.
+2025-10-15 10:43:15,116 - DEBUG -   Peças alocadas: 150/370. Adicionando nova chapa.
+2025-10-15 10:43:15,132 - DEBUG -   Peças alocadas: 219/370. Adicionando nova chapa.
+2025-10-15 10:43:15,132 - DEBUG -   Peças alocadas: 270/370. Adicionando nova chapa.
+2025-10-15 10:43:15,148 - DEBUG -   Peças alocadas: 280/370. Adicionando nova chapa.
+2025-10-15 10:43:15,164 - DEBUG -   Peças alocadas: 290/370. Adicionando nova chapa.
+2025-10-15 10:43:15,180 - DEBUG -   Peças alocadas: 300/370. Adicionando nova chapa.
+2025-10-15 10:43:15,195 - DEBUG -   Peças alocadas: 310/370. Adicionando nova chapa.
+2025-10-15 10:43:15,211 - DEBUG -   Peças alocadas: 320/370. Adicionando nova chapa.
+2025-10-15 10:43:15,227 - DEBUG -   Peças alocadas: 330/370. Adicionando nova chapa.
+2025-10-15 10:43:15,242 - DEBUG -   Peças alocadas: 340/370. Adicionando nova chapa.
+2025-10-15 10:43:15,274 - DEBUG -   Peças alocadas: 350/370. Adicionando nova chapa.
+2025-10-15 10:43:15,289 - DEBUG -   Peças alocadas: 360/370. Adicionando nova chapa.
+2025-10-15 10:43:15,305 - DEBUG - Algoritmo MaxRectsBssf finalizou com 15 chapas.
+2025-10-15 10:43:15,305 - INFO - Novo melhor resultado encontrado com 15 chapas usando MaxRectsBssf.
+2025-10-15 10:43:15,305 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 42 peças.
+2025-10-15 10:43:15,305 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 4 sobras válidas.
+2025-10-15 10:43:15,305 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 44 peças.
+2025-10-15 10:43:15,305 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:43:15,305 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 64 peças.
+2025-10-15 10:43:15,305 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:43:15,321 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 69 peças.
+2025-10-15 10:43:15,321 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:43:15,321 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 51 peças.
+2025-10-15 10:43:15,321 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:43:15,321 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 10 peças.
+2025-10-15 10:43:15,321 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:43:15,321 - INFO - Cálculo finalizado. Melhor resultado: 15 chapas, 67.60% de aproveitamento.
+2025-10-15 10:43:15,321 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
+2025-10-15 10:43:15,321 - INFO - Thread de cálculo finalizada.
+2025-10-15 10:49:16,970 - DEBUG - STREAM b'IHDR' 16 13
+2025-10-15 10:49:16,970 - DEBUG - STREAM b'sRGB' 41 1
+2025-10-15 10:49:16,970 - DEBUG - STREAM b'gAMA' 54 4
+2025-10-15 10:49:16,970 - DEBUG - STREAM b'pHYs' 70 9
+2025-10-15 10:49:16,970 - DEBUG - STREAM b'IDAT' 91 29083
+2025-10-15 10:49:17,160 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0.
+2025-10-15 10:49:17,160 - WARNING - Muitas peças (370). Usando modo rápido (apenas MaxRectsBssf).
+2025-10-15 10:49:17,160 - DEBUG - Testando algoritmo: MaxRectsBssf
+2025-10-15 10:49:17,160 - DEBUG -   Peças alocadas: 42/370. Adicionando nova chapa.
+2025-10-15 10:49:17,172 - DEBUG -   Peças alocadas: 86/370. Adicionando nova chapa.
+2025-10-15 10:49:17,176 - DEBUG -   Peças alocadas: 150/370. Adicionando nova chapa.
+2025-10-15 10:49:17,183 - DEBUG -   Peças alocadas: 219/370. Adicionando nova chapa.
+2025-10-15 10:49:17,192 - DEBUG -   Peças alocadas: 270/370. Adicionando nova chapa.
+2025-10-15 10:49:17,208 - DEBUG -   Peças alocadas: 280/370. Adicionando nova chapa.
+2025-10-15 10:49:17,224 - DEBUG -   Peças alocadas: 290/370. Adicionando nova chapa.
+2025-10-15 10:49:17,240 - DEBUG -   Peças alocadas: 300/370. Adicionando nova chapa.
+2025-10-15 10:49:17,256 - DEBUG -   Peças alocadas: 310/370. Adicionando nova chapa.
+2025-10-15 10:49:17,272 - DEBUG -   Peças alocadas: 320/370. Adicionando nova chapa.
+2025-10-15 10:49:17,288 - DEBUG -   Peças alocadas: 330/370. Adicionando nova chapa.
+2025-10-15 10:49:17,304 - DEBUG -   Peças alocadas: 340/370. Adicionando nova chapa.
+2025-10-15 10:49:17,320 - DEBUG -   Peças alocadas: 350/370. Adicionando nova chapa.
+2025-10-15 10:49:17,352 - DEBUG -   Peças alocadas: 360/370. Adicionando nova chapa.
+2025-10-15 10:49:17,368 - DEBUG - Algoritmo MaxRectsBssf finalizou com 15 chapas.
+2025-10-15 10:49:17,368 - INFO - Novo melhor resultado encontrado com 15 chapas usando MaxRectsBssf.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 42 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 4 sobras válidas.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 44 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 64 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 69 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 51 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:49:17,368 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 10 peças.
+2025-10-15 10:49:17,368 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:49:17,368 - INFO - Cálculo finalizado. Melhor resultado: 15 chapas, 67.60% de aproveitamento.
+2025-10-15 10:49:34,566 - DEBUG - STREAM b'IHDR' 16 13
+2025-10-15 10:49:34,566 - DEBUG - STREAM b'sRGB' 41 1
+2025-10-15 10:49:34,566 - DEBUG - STREAM b'gAMA' 54 4
+2025-10-15 10:49:34,566 - DEBUG - STREAM b'pHYs' 70 9
+2025-10-15 10:49:34,566 - DEBUG - STREAM b'IDAT' 91 29083
+2025-10-15 10:50:55,639 - INFO - Thread de cálculo iniciada.
+2025-10-15 10:50:55,639 - DEBUG - Iniciando cálculo para espessura 2.0 com 6 tipos de peças.
+2025-10-15 10:50:55,639 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0.
+2025-10-15 10:50:55,641 - WARNING - Muitas peças (370). Usando modo rápido (apenas MaxRectsBssf).
+2025-10-15 10:50:55,641 - DEBUG - Testando algoritmo: MaxRectsBssf
+2025-10-15 10:50:55,643 - DEBUG -   Peças alocadas: 42/370. Adicionando nova chapa.
+2025-10-15 10:50:55,647 - DEBUG -   Peças alocadas: 86/370. Adicionando nova chapa.
+2025-10-15 10:50:55,655 - DEBUG -   Peças alocadas: 150/370. Adicionando nova chapa.
+2025-10-15 10:50:55,655 - DEBUG -   Peças alocadas: 219/370. Adicionando nova chapa.
+2025-10-15 10:50:55,670 - DEBUG -   Peças alocadas: 270/370. Adicionando nova chapa.
+2025-10-15 10:50:55,686 - DEBUG -   Peças alocadas: 280/370. Adicionando nova chapa.
+2025-10-15 10:50:55,702 - DEBUG -   Peças alocadas: 290/370. Adicionando nova chapa.
+2025-10-15 10:50:55,718 - DEBUG -   Peças alocadas: 300/370. Adicionando nova chapa.
+2025-10-15 10:50:55,734 - DEBUG -   Peças alocadas: 310/370. Adicionando nova chapa.
+2025-10-15 10:50:55,752 - DEBUG -   Peças alocadas: 320/370. Adicionando nova chapa.
+2025-10-15 10:50:55,768 - DEBUG -   Peças alocadas: 330/370. Adicionando nova chapa.
+2025-10-15 10:50:55,782 - DEBUG -   Peças alocadas: 340/370. Adicionando nova chapa.
+2025-10-15 10:50:55,797 - DEBUG -   Peças alocadas: 350/370. Adicionando nova chapa.
+2025-10-15 10:50:55,829 - DEBUG -   Peças alocadas: 360/370. Adicionando nova chapa.
+2025-10-15 10:50:55,845 - DEBUG - Algoritmo MaxRectsBssf finalizou com 15 chapas.
+2025-10-15 10:50:55,845 - INFO - Novo melhor resultado encontrado com 15 chapas usando MaxRectsBssf.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 42 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 4 sobras válidas.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 44 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 64 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 69 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 51 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 5 sobras válidas.
+2025-10-15 10:50:55,845 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 10 peças.
+2025-10-15 10:50:55,845 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
+2025-10-15 10:50:55,845 - INFO - Cálculo finalizado. Melhor resultado: 15 chapas, 67.60% de aproveitamento.
+2025-10-15 10:50:55,845 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
+2025-10-15 10:50:55,845 - INFO - Thread de cálculo finalizada.

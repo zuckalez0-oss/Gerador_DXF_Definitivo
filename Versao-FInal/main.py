@@ -463,8 +463,12 @@ class MainWindow(QMainWindow):
         project_number = self.projeto_input.text().strip()
         if not project_number:
             QMessageBox.warning(self, "Número do Projeto Ausente", "Por favor, defina um número para o projeto ativo."); return
-        combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-        if combined_df.empty: QMessageBox.warning(self, "Aviso", "A lista de peças está vazia."); return
+        # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+        dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
+        if not dfs_to_concat:
+            QMessageBox.warning(self, "Aviso", "A lista de peças está vazia."); return
+        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        # --- FIM CORREÇÃO ---
         self.set_buttons_enabled_on_process(False)
         self.progress_bar.setVisible(True); self.progress_bar.setValue(0); self.log_text.clear()
         self.process_thread = ProcessThread(combined_df.copy(), generate_pdf, generate_dxf, self.project_directory, project_number)
@@ -485,8 +489,12 @@ class MainWindow(QMainWindow):
             return
         reply = QMessageBox.question(self, 'Concluir Projeto', f"Deseja salvar e concluir o projeto '{project_number}'?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
-            combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-            if not combined_df.empty:
+            # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+            dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
+            if dfs_to_concat:
+                combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+            # --- FIM CORREÇÃO ---
+                combined_df['project_number'] = project_number
                 combined_df['project_number'] = project_number
                 self.history_manager.save_project(project_number, combined_df)
                 self.log_text.append(f"Projeto '{project_number}' salvo no histórico.")
@@ -497,15 +505,19 @@ class MainWindow(QMainWindow):
             self.log_text.append(f"\n--- PROJETO '{project_number}' CONCLUÍDO ---")
 
     def open_nesting_dialog(self):
-        if self.excel_df.empty and self.manual_df.empty:
+        # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+        dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
+        if not dfs_to_concat:
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para calcular o aproveitamento.")
             return
-        combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-        rect_df = combined_df[combined_df['forma'] == 'rectangle'].copy()
-        if rect_df.empty:
-            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle'.")
+        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        # --- CORREÇÃO: Inclui 'circle' na verificação de formas válidas ---
+        valid_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle'])].copy()
+        if valid_df.empty:
+            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle', 'circle' ou 'right_triangle'.")
             return
-        dialog = NestingDialog(rect_df, self)
+        # Passa o DataFrame com as formas válidas para o diálogo
+        dialog = NestingDialog(valid_df, self)
         dialog.exec_()
 
     def export_project_to_excel(self):
@@ -526,10 +538,12 @@ class MainWindow(QMainWindow):
         if not project_number:
             QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um novo projeto para poder exportá-lo.")
             return
-        combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-        if combined_df.empty:
+        # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+        dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
+        if not dfs_to_concat:
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para exportar.")
             return
+        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
         default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V4_NOVA_{project_number}.xlsx")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Resumo do Projeto", default_filename, "Excel Files (*.xlsx)")
         if not save_path:
@@ -571,7 +585,10 @@ class MainWindow(QMainWindow):
                 furos = row_data.get('furos', [])
                 num_furos = len(furos) if isinstance(furos, list) else 0
                 ws.cell(row=current_row, column=5, value=num_furos)
-                diametro_furo = furos[0].get('diam', 0) if num_furos > 0 else 0
+                # --- CORREÇÃO: Acessa o diâmetro do furo apenas se a lista não estiver vazia ---
+                diametro_furo = 0
+                if num_furos > 0 and furos: # Garante que a lista não está vazia antes de acessar o índice
+                    diametro_furo = furos[0].get('diam', 0)
                 ws.cell(row=current_row, column=6, value=diametro_furo)
                 ws.cell(row=current_row, column=7, value=row_data.get('espessura', 0))
                 ws.cell(row=current_row, column=8, value=largura)
@@ -579,17 +596,25 @@ class MainWindow(QMainWindow):
                 self.progress_bar.setValue(int(((index + 1) / (total_pecas * 2)) * 100))
             self.log_text.append("Calculando aproveitamento de chapas...")
             QApplication.processEvents()
-            rect_df = combined_df[combined_df['forma'] == 'rectangle'].copy()
-            rect_df['espessura'] = rect_df['espessura'].astype(float)
-            grouped = rect_df.groupby('espessura')
+            # --- CORREÇÃO: Inclui todas as formas válidas no cálculo para o Excel ---
+            valid_nesting_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle'])].copy()
+            valid_nesting_df['espessura'] = valid_nesting_df['espessura'].astype(float)
+            grouped = valid_nesting_df.groupby('espessura')
             current_row = 209
             ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = wb.active['A1'].font.copy(bold=True, size=14)
             current_row += 2
+            # --- CORREÇÃO: Inicializa a lista de sobras ANTES do loop ---
+            todas_as_sobras = []
             for espessura, group in grouped:
                 pecas_para_calcular = []
                 for _, row in group.iterrows():
-                    if row['largura'] > 0 and row['altura'] > 0:
-                        pecas_para_calcular.append({'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'quantidade': int(row['qtd'])})
+                    if row['forma'] == 'rectangle' and row['largura'] > 0 and row['altura'] > 0:
+                        pecas_para_calcular.append({'forma': 'rectangle', 'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'quantidade': int(row['qtd'])})
+                    elif row['forma'] == 'circle' and row['diametro'] > 0:
+                        pecas_para_calcular.append({'forma': 'circle', 'largura': row['diametro'] + offset, 'altura': row['diametro'] + offset, 'diametro': row['diametro'], 'quantidade': int(row['qtd'])})
+                    elif row['forma'] == 'right_triangle' and row['rt_base'] > 0 and row['rt_height'] > 0:
+                        pecas_para_calcular.append({'forma': 'right_triangle', 'largura': row['rt_base'] + offset, 'altura': row['rt_height'] + offset, 'quantidade': int(row['qtd'])})
+
                 if not pecas_para_calcular: continue
                 resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
                 ws.cell(row=current_row, column=1, value=f"Espessura: {espessura} mm").font = wb.active['A1'].font.copy(bold=True, size=12)
@@ -612,6 +637,8 @@ class MainWindow(QMainWindow):
                         texto_peca = f"- {item['qtd']}x de {largura_real:.0f}x{altura_real:.0f} mm"
                         ws.cell(row=current_row, column=3, value=texto_peca)
                         current_row += 1
+                    # --- INÍCIO: COLETA DE SOBRAS POR PLANO ---
+                    todas_as_sobras.extend(plano_info.get('sobras', []) * plano_info['repeticoes'])
                     current_row += 1
                 ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
                 cell = ws.cell(row=current_row, column=1)
@@ -620,6 +647,43 @@ class MainWindow(QMainWindow):
                 self.progress_bar.setValue(50 + int((current_row / 400) * 50))
             self.log_text.append("Salvando arquivo Excel...")
             QApplication.processEvents()
+            # --- INÍCIO: CÁLCULO E ESCRITA DO PESO DAS SOBRAS ---
+            # --- INÍCIO: LÓGICA APRIMORADA PARA DETALHAR SOBRAS ---
+            if todas_as_sobras:
+                sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
+                sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
+    
+                area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
+                area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
+    
+                peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
+                peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
+    
+                # Agrupa as sobras por dimensão para contagem
+                from collections import Counter
+                contagem_aproveitaveis = Counter([(s['largura'], s['altura']) for s in sobras_aproveitaveis])
+                contagem_sucata = Counter([(s['largura'], s['altura']) for s in sobras_sucata])
+    
+                # Escreve o resumo detalhado no Excel
+                ws.cell(row=current_row, column=1, value="Resumo das Sobras Aproveitáveis (> 300x300 mm)").font = wb.active['A1'].font.copy(bold=True)
+                current_row += 1
+                if not contagem_aproveitaveis:
+                    ws.cell(row=current_row, column=2, value="- Nenhuma")
+                    current_row += 1
+                for (larg, alt), qtd in contagem_aproveitaveis.items():
+                    ws.cell(row=current_row, column=2, value=f"- {qtd}x Retalho de {larg:.0f}x{alt:.0f} mm")
+                    current_row += 1
+                ws.cell(row=current_row, column=2, value=f"Peso Total Aproveitável: {peso_aproveitavel_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
+                current_row += 2
+    
+                ws.cell(row=current_row, column=1, value="Resumo das Sobras (Sucata)").font = wb.active['A1'].font.copy(bold=True)
+                current_row += 1
+                for (larg, alt), qtd in contagem_sucata.items():
+                    ws.cell(row=current_row, column=2, value=f"- {qtd}x Retalho de {larg:.0f}x{alt:.0f} mm")
+                    current_row += 1
+                ws.cell(row=current_row, column=2, value=f"Peso Total (Sucata): {peso_sucata_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
+                current_row += 2
+            # --- FIM: LÓGICA APRIMORADA ---
             wb.save(save_path)
             self.progress_bar.setValue(100)
             self.log_text.append(f"Resumo do projeto salvo com sucesso em: {save_path}")
@@ -666,8 +730,12 @@ class MainWindow(QMainWindow):
 
     def update_table_display(self):
         self.set_initial_button_state()
-        combined_df = pd.concat([self.excel_df, self.manual_df], ignore_index=True)
-        
+        # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+        dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
+        if dfs_to_concat:
+            combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+        else:
+            combined_df = pd.DataFrame(columns=self.colunas_df)
         self.pieces_table.blockSignals(True)
         self.pieces_table.setRowCount(0)
         self.pieces_table.blockSignals(False)
