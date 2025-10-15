@@ -832,7 +832,7 @@
     },
     "1585": {
         "project_number": "1585",
-        "save_date": "15/10/2025 10:21:32",
+        "save_date": "15/10/2025 11:03:13",
         "pieces": [
             {
                 "nome_arquivo": "Gloes",
@@ -903,6 +903,205 @@
                 "trapezoid_height": 0.0,
                 "furos": [],
                 "project_number": "1585"
+            },
+            {
+                "nome_arquivo": "VDS1842",
+                "forma": "trapezoid",
+                "espessura": 2.0,
+                "qtd": 50.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 200.0,
+                "trapezoid_small_base": 100.0,
+                "trapezoid_height": 150.0,
+                "furos": [],
+                "project_number": "1585"
+            }
+        ]
+    },
+    "555555555": {
+        "project_number": "555555555",
+        "save_date": "15/10/2025 11:11:23",
+        "pieces": [
+            {
+                "nome_arquivo": "VDS1843",
+                "forma": "rectangle",
+                "espessura": 6.35,
+                "qtd": 50.0,
+                "largura": 500.0,
+                "altura": 500.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 30.0,
+                        "x": 35.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 465.0,
+                        "y": 35.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 465.0,
+                        "y": 465.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 35.0,
+                        "y": 465.0
+                    }
+                ],
+                "project_number": "555555555"
+            },
+            {
+                "nome_arquivo": "VDS1844",
+                "forma": "rectangle",
+                "espessura": 6.35,
+                "qtd": 50.0,
+                "largura": 152.0,
+                "altura": 1500.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 20.0,
+                        "x": 20.0,
+                        "y": 20.0
+                    },
+                    {
+                        "diam": 20.0,
+                        "x": 132.0,
+                        "y": 20.0
+                    },
+                    {
+                        "diam": 20.0,
+                        "x": 132.0,
+                        "y": 1480.0
+                    },
+                    {
+                        "diam": 20.0,
+                        "x": 20.0,
+                        "y": 1480.0
+                    }
+                ],
+                "project_number": "555555555"
+            },
+            {
+                "nome_arquivo": "VDS1845",
+                "forma": "rectangle",
+                "espessura": 6.35,
+                "qtd": 500.0,
+                "largura": 452.0,
+                "altura": 2000.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 30.0,
+                        "x": 65.0,
+                        "y": 65.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 387.0,
+                        "y": 65.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 387.0,
+                        "y": 1935.0
+                    },
+                    {
+                        "diam": 30.0,
+                        "x": 65.0,
+                        "y": 1935.0
+                    }
+                ],
+                "project_number": "555555555"
+            },
+            {
+                "nome_arquivo": "VDS1846",
+                "forma": "circle",
+                "espessura": 6.35,
+                "qtd": 100.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 400.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 30.0,
+                        "x": 200.0,
+                        "y": 200.0
+                    }
+                ],
+                "project_number": "555555555"
+            },
+            {
+                "nome_arquivo": "VDS1847",
+                "forma": "right_triangle",
+                "espessura": 6.35,
+                "qtd": 150.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 0.0,
+                "rt_base": 200.0,
+                "rt_height": 150.0,
+                "trapezoid_large_base": 0.0,
+                "trapezoid_small_base": 0.0,
+                "trapezoid_height": 0.0,
+                "furos": [
+                    {
+                        "diam": 20.0,
+                        "x": 100.0,
+                        "y": 75.0
+                    }
+                ],
+                "project_number": "555555555"
+            },
+            {
+                "nome_arquivo": "VDS1848",
+                "forma": "trapezoid",
+                "espessura": 6.35,
+                "qtd": 50.0,
+                "largura": 0.0,
+                "altura": 0.0,
+                "diametro": 0.0,
+                "rt_base": 0.0,
+                "rt_height": 0.0,
+                "trapezoid_large_base": 300.0,
+                "trapezoid_small_base": 100.0,
+                "trapezoid_height": 200.0,
+                "furos": [
+                    {
+                        "diam": 20.0,
+                        "x": 150.0,
+                        "y": 100.0
+                    }
+                ],
+                "project_number": "555555555"
             }
         ]
     }

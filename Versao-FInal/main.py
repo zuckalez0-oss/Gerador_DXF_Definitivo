@@ -512,9 +512,9 @@ class MainWindow(QMainWindow):
             return
         combined_df = pd.concat(dfs_to_concat, ignore_index=True)
         # --- CORREÇÃO: Inclui 'circle' na verificação de formas válidas ---
-        valid_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle'])].copy()
+        valid_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
         if valid_df.empty:
-            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle', 'circle' ou 'right_triangle'.")
+            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle', 'circle', 'right_triangle' ou 'trapezoid'.")
             return
         # Passa o DataFrame com as formas válidas para o diálogo
         dialog = NestingDialog(valid_df, self)
@@ -597,7 +597,7 @@ class MainWindow(QMainWindow):
             self.log_text.append("Calculando aproveitamento de chapas...")
             QApplication.processEvents()
             # --- CORREÇÃO: Inclui todas as formas válidas no cálculo para o Excel ---
-            valid_nesting_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle'])].copy()
+            valid_nesting_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
             valid_nesting_df['espessura'] = valid_nesting_df['espessura'].astype(float)
             grouped = valid_nesting_df.groupby('espessura')
             current_row = 209
@@ -614,6 +614,8 @@ class MainWindow(QMainWindow):
                         pecas_para_calcular.append({'forma': 'circle', 'largura': row['diametro'] + offset, 'altura': row['diametro'] + offset, 'diametro': row['diametro'], 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'right_triangle' and row['rt_base'] > 0 and row['rt_height'] > 0:
                         pecas_para_calcular.append({'forma': 'right_triangle', 'largura': row['rt_base'] + offset, 'altura': row['rt_height'] + offset, 'quantidade': int(row['qtd'])})
+                    elif row['forma'] == 'trapezoid' and row['trapezoid_large_base'] > 0 and row['trapezoid_height'] > 0:
+                        pecas_para_calcular.append({'forma': 'trapezoid', 'largura': row['trapezoid_large_base'] + offset, 'altura': row['trapezoid_height'] + offset, 'small_base': row['trapezoid_small_base'] + offset, 'quantidade': int(row['qtd'])})
 
                 if not pecas_para_calcular: continue
                 resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)

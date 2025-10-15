@@ -66,6 +66,15 @@ class CalculationThread(QThread):
                             'quantidade': int(row['qtd']),
                             'furos': [] # Furos em triângulos não implementado
                         })
+                    elif row['forma'] == 'trapezoid' and row['trapezoid_large_base'] > 0 and row['trapezoid_height'] > 0:
+                        pecas_para_calcular.append({
+                            'forma': 'trapezoid',
+                            'largura': row['trapezoid_large_base'] + self.offset, # Bounding box
+                            'altura': row['trapezoid_height'] + self.offset, # Bounding box
+                            'small_base': row['trapezoid_small_base'] + self.offset,
+                            'quantidade': int(row['qtd']),
+                            'furos': row.get('furos', [])
+                        })
                 # --- FIM: LÓGICA PARA INCLUIR CÍRCULOS ---
 
                 if not pecas_para_calcular:
@@ -159,6 +168,32 @@ class CuttingPlanWidget(QWidget):
                 path2.lineTo(rect_x + rect_w, rect_y)
                 path2.closeSubpath()
                 painter.drawPath(path1); painter.drawPath(path2)
+            elif forma == 'paired_trapezoid':
+                orig_dims = peca.get('orig_dims')
+                if orig_dims:
+                    large_base_scaled = orig_dims['large_base'] * scale
+                    small_base_scaled = orig_dims['small_base'] * scale
+                    height_scaled = orig_dims['height'] * scale
+                    offset_x_trap = (large_base_scaled - small_base_scaled) / 2
+
+                    # Trapézio 1 (normal)
+                    path1 = QPainterPath()
+                    path1.moveTo(rect_x, rect_y); path1.lineTo(rect_x + large_base_scaled, rect_y); path1.lineTo(rect_x + large_base_scaled - offset_x_trap, rect_y + height_scaled); path1.lineTo(rect_x + offset_x_trap, rect_y + height_scaled); path1.closeSubpath()
+                    
+                    # Trapézio 2 (rotacionado 180 graus e deslocado)
+                    # --- CORREÇÃO DA LÓGICA DE DESENHO DO SEGUNDO TRAPÉZIO ---
+                    x_base2 = rect_x + large_base_scaled
+                    path2 = QPainterPath()
+                    # Ponto inferior esquerdo do 2º trapézio (coincide com inferior direito do 1º)
+                    path2.moveTo(rect_x + large_base_scaled, rect_y)
+                    # Ponto inferior direito do 2º trapézio
+                    path2.lineTo(rect_x + large_base_scaled + small_base_scaled, rect_y)
+                    # Ponto superior direito do 2º trapézio
+                    path2.lineTo(rect_x + large_base_scaled + offset_x_trap, rect_y + height_scaled)
+                    # Ponto superior esquerdo do 2º trapézio (coincide com superior direito do 1º)
+                    path2.lineTo(rect_x + large_base_scaled - offset_x_trap, rect_y + height_scaled)
+                    path2.closeSubpath()
+                    painter.drawPath(path1); painter.drawPath(path2)
             else: # 'rectangle'
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             # --- FIM: DESENHO CONDICIONAL ---
@@ -228,10 +263,8 @@ class PlanVisualizationDialog(QDialog):
         info_layout.addWidget(pecas_label_titulo)
 
         for item in self.resumo_pecas:
-            dimensoes_com_offset = item['tipo'].split('x')
-            largura_real = float(dimensoes_com_offset[0]) - self.offset
-            altura_real = float(dimensoes_com_offset[1]) - self.offset
-            texto_peca = f"- {item['qtd']}x de {largura_real:.0f} x {altura_real:.0f} mm"
+            # --- CORREÇÃO: Exibe a identificação da peça diretamente ---
+            texto_peca = f"- {item['qtd']}x de {item['tipo']}"
             info_layout.addWidget(QLabel(texto_peca))
         info_group.setLayout(info_layout)
         details_layout.addWidget(info_group)
@@ -386,12 +419,12 @@ class NestingDialog(QDialog):
 
         # Filtra apenas peças retangulares e agrupa por espessura
         # --- MUDANÇA: Inclui círculos no filtro ---
-        valid_shapes_df = self.df[self.df['forma'].isin(['rectangle', 'circle', 'right_triangle'])].copy()
+        valid_shapes_df = self.df[self.df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
         valid_shapes_df['espessura'] = valid_shapes_df['espessura'].astype(float)
         grouped = valid_shapes_df.groupby('espessura')
 
         if len(grouped) == 0:
-            QMessageBox.information(self, "Nenhuma Peça", "Nenhuma peça retangular, circular ou triangular encontrada para o cálculo.")
+            QMessageBox.information(self, "Nenhuma Peça", "Nenhuma peça retangular, circular, triangular ou trapezoidal encontrada para o cálculo.")
             return
 
         # --- INÍCIO: LÓGICA DA THREAD ---

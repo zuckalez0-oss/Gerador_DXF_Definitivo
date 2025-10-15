@@ -408,6 +408,28 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
             path.lineTo(x + w, y)
             path.close()
             c.drawPath(path, stroke=1, fill=1)
+        elif peca.get('forma') == 'paired_trapezoid':
+            orig_dims = peca.get('orig_dims')
+            if orig_dims:
+                x, y, w, h = x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala
+                large_base_s = orig_dims['large_base'] * escala
+                small_base_s = orig_dims['small_base'] * escala
+                height_s = orig_dims['height'] * escala
+                offset_x_s = (large_base_s - small_base_s) / 2
+                
+                path1 = c.beginPath(); path1.moveTo(x, y); path1.lineTo(x + large_base_s, y); path1.lineTo(x + large_base_s - offset_x_s, y + height_s); path1.lineTo(x + offset_x_s, y + height_s); path1.close()
+                c.drawPath(path1, stroke=1, fill=1)
+
+                # --- CORREÇÃO DA LÓGICA DE DESENHO DO SEGUNDO TRAPÉZIO ---
+                x_base2 = x + large_base_s
+                path2 = c.beginPath()
+                path2.moveTo(x + large_base_s, y) # Ponto inferior esquerdo do 2º
+                path2.lineTo(x + large_base_s + small_base_s, y) # Ponto inferior direito do 2º
+                path2.lineTo(x + large_base_s + offset_x_s, y + height_s) # Ponto superior direito do 2º
+                path2.lineTo(x + large_base_s - offset_x_s, y + height_s) # Ponto superior esquerdo do 2º
+                path2.close()
+                c.drawPath(path2, stroke=1, fill=1)
+
         else: # 'rectangle'
             c.rect(x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
         # --- FIM: DESENHO CONDICIONAL ---
