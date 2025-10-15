@@ -299,15 +299,33 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano):
     c.setStrokeColorRGB(0, 0, 0) # Volta para preto
 
     # 2. Desenha as peças
+    default_color = (0.66, 0.26, 0.26) # Vermelho escuro padrão
+
     for peca in plano:
-        rect_w = peca['largura'] * escala
-        rect_h = peca['altura'] * escala
-        rect_x = x0 + peca['x'] * escala
+        w, h, x, y, tipo_key = peca['largura'], peca['altura'], peca['x'], peca['y'], peca['tipo_key']
+        rect_w, rect_h = w * escala, h * escala
+        rect_x = x0 + x * escala
         # A coordenada Y da peça já está invertida (origem no topo).
         # Para desenhar no PDF (origem embaixo), calculamos o canto inferior esquerdo.
-        rect_y = (y0 + dh) - (peca['y'] * escala) - rect_h
-        c.setFillColorRGB(0.66, 0.26, 0.26) # Vermelho escuro, igual ao da UI
+        rect_y = (y0 + dh) - (y * escala) - rect_h
+
+        # Define a cor da peça
+        q_color = color_map.get(tipo_key) if color_map else None
+        if q_color:
+            c.setFillColorRGB(q_color.redF(), q_color.greenF(), q_color.blueF())
+        else:
+            c.setFillColorRGB(*default_color)
+
         c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
+
+        # 3. Desenha os furos
+        furos = peca.get('furos', [])
+        if furos:
+            c.setFillColorRGB(1, 1, 1) # Furos brancos
+            for furo in furos:
+                furo_x_centro = rect_x + furo['x'] * escala
+                furo_y_centro = rect_y + rect_h - (furo['y'] * escala) # Y do furo é relativo ao topo da peça
+                c.circle(furo_x_centro, furo_y_centro, (furo['diam'] / 2) * escala, stroke=1, fill=1)
 
     # 3. Desenha as cotas da chapa
     y_cota_total = y0 - dist_cota

@@ -1,5 +1,6 @@
 import sys
 import os
+import colorsys
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QLineEdit, 
                              QPushButton, QDialogButtonBox, QMessageBox, 
                              QGroupBox, QLabel, QWidget, QHBoxLayout, QScrollArea,
@@ -13,13 +14,27 @@ import pdf_generator
 # Importe sua função de cálculo
 from calculo_cortes import calcular_plano_de_corte 
 
+# --- INÍCIO: FUNÇÃO PARA GERAR CORES DISTINTAS ---
+def generate_distinct_colors(n):
+    """Gera N cores visualmente distintas."""
+    colors = []
+    for i in range(n):
+        hue = i / n
+        # Usamos saturação e valor altos para cores vibrantes, mas não totalmente saturadas para não cansar a vista.
+        saturation = 0.85
+        value = 0.9
+        rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+        colors.append(QColor(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)))
+    return colors
+# --- FIM: FUNÇÃO PARA GERAR CORES DISTINTAS ---
+
 # Classe para desenhar a visualização do plano de corte
 class CuttingPlanWidget(QWidget):
-    def __init__(self, chapa_largura, chapa_altura, plano, parent=None):
+    def __init__(self, chapa_largura, chapa_altura, plano, color_map, parent=None):
         super().__init__(parent)
-        self.chapa_largura = chapa_largura
-        self.chapa_altura = chapa_altura
+        self.chapa_largura, self.chapa_altura = chapa_largura, chapa_altura
         self.plano = plano
+        self.color_map = color_map
         self.setMinimumSize(400, 600)
 
     def paintEvent(self, event):
@@ -41,29 +56,40 @@ class CuttingPlanWidget(QWidget):
         painter.drawRect(int(offset_x), int(offset_y), int(self.chapa_largura * scale), int(self.chapa_altura * scale))
 
         # 2. Desenha as peças
+        painter.setPen(QPen(QColor("#333333")))
         for peca in self.plano:
-            x, y, w, h = peca['x'], peca['y'], peca['largura'], peca['altura']
+            x, y, w, h, tipo_key = peca['x'], peca['y'], peca['largura'], peca['altura'], peca['tipo_key']
             
-            # Posições e dimensões escaladas
             rect_x = int(offset_x + x * scale)
-            # A coordenada Y já vem ajustada para a origem no canto superior esquerdo.
             rect_y = int(offset_y + y * scale)
             rect_w = int(w * scale)
             rect_h = int(h * scale)
 
-            painter.setPen(QPen(QColor("#333333")))
-            painter.setBrush(QBrush(QColor("#A94442"))) # Um tom de vermelho
+            # Define a cor da peça
+            painter.setBrush(QBrush(self.color_map.get(tipo_key, QColor("#A94442"))))
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+
+            # 3. Desenha os furos dentro da peça
+            furos = peca.get('furos', [])
+            if furos:
+                painter.setBrush(QBrush(QColor("#FFFFFF"))) # Furos brancos
+                for furo in furos:
+                    furo_x = rect_x + (furo['x'] * scale)
+                    furo_y = rect_y + (furo['y'] * scale)
+                    furo_diam = furo['diam'] * scale
+                    # Desenha o círculo do furo centralizado na sua coordenada
+                    painter.drawEllipse(int(furo_x - furo_diam / 2), int(furo_y - furo_diam / 2), int(furo_diam), int(furo_diam))
 
 
 class PlanVisualizationDialog(QDialog):
-    def __init__(self, chapa_largura, chapa_altura, plano_info, offset, parent=None):
+    def __init__(self, chapa_largura, chapa_altura, plano_info, offset, color_map, parent=None):
         super().__init__(parent)
         self.chapa_largura = chapa_largura
         self.chapa_altura = chapa_altura
         self.plano = plano_info['plano']
         self.resumo_pecas = plano_info['resumo_pecas']
         self.offset = offset
+        self.color_map = color_map
         self.setWindowTitle("Visualização Detalhada do Plano de Corte")
         self.setMinimumSize(600, 800)
         
@@ -90,7 +116,7 @@ class PlanVisualizationDialog(QDialog):
         layout.addWidget(info_group)
         # --- FIM: NOVOS LABELS DE INFORMAÇÃO ---
 
-        cutting_widget = CuttingPlanWidget(chapa_largura, chapa_altura, self.plano)
+        cutting_widget = CuttingPlanWidget(chapa_largura, chapa_altura, self.plano, color_map)
         layout.addWidget(cutting_widget)
 
         buttons_layout = QHBoxLayout()
@@ -110,7 +136,7 @@ class PlanVisualizationDialog(QDialog):
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar PDF do Plano de Corte", default_path, "PDF Files (*.pdf)")
         if save_path:
             c = canvas.Canvas(save_path, pagesize=A4)
-            pdf_generator.gerar_pdf_plano_de_corte(c, self.chapa_largura, self.chapa_altura, self.plano) # O plano é o que importa aqui
+            pdf_generator.gerar_pdf_plano_de_corte(c, self.chapa_largura, self.chapa_altura, self.plano, self.color_map)
             c.save()
             QMessageBox.information(self, "Sucesso", f"PDF do plano de corte salvo em:\n{save_path}")
 
@@ -120,6 +146,7 @@ class NestingDialog(QDialog):
         super().__init__(parent)
         self.df = dataframe
         self.calculation_results = None # Armazena os resultados completos
+        self.color_map = {} # Armazena o mapa de cores por tipo de peça
         self.setWindowTitle("Cálculo de Aproveitamento de Chapa")
         self.setMinimumWidth(600)
 
@@ -217,15 +244,22 @@ class NestingDialog(QDialog):
                         # Adiciona o offset às dimensões da peça
                         'largura': row['largura'] + offset,
                         'altura': row['altura'] + offset,
-                        'quantidade': int(row['qtd'])
+                        'quantidade': int(row['qtd']),
+                        'furos': row.get('furos', []) # Passa a informação dos furos
                     })
             
+            # --- INÍCIO: GERAÇÃO DO MAPA DE CORES ---
+            tipos_de_peca_unicos = group.apply(lambda r: f"{r['largura'] + offset}x{r['altura'] + offset}", axis=1).unique()
+            cores = generate_distinct_colors(len(tipos_de_peca_unicos))
+            self.color_map = {tipo: cor for tipo, cor in zip(tipos_de_peca_unicos, cores)}
+            # --- FIM: GERAÇÃO DO MAPA DE CORES ---
+
             if not pecas_para_calcular:
                 continue
 
             try:
                 # Chama a função de cálculo importada
-                resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
+                resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular) # Furos são passados aqui
                 self.calculation_results[espessura] = resultado # Armazena o resultado
                 self.display_results_for_thickness(espessura, resultado, chapa_largura, chapa_altura)
             except Exception as e:
@@ -268,7 +302,7 @@ class NestingDialog(QDialog):
             
             view_btn = QPushButton("Ver Detalhes")
             # --- MUDANÇA: Passa o dicionário 'plano_info' completo e o offset ---
-            view_btn.clicked.connect(lambda _, p_info=plano_info, w=chapa_w, h=chapa_h: self.show_plan_visualization(p_info, w, h))
+            view_btn.clicked.connect(lambda _, p_info=plano_info, w=chapa_w, h=chapa_h: self.show_plan_visualization(p_info, w, h, self.color_map))
             
             plano_layout.addWidget(plan_label)
             plano_layout.addStretch()
@@ -279,7 +313,7 @@ class NestingDialog(QDialog):
         group_box.setLayout(group_layout)
         self.results_scroll_layout.addWidget(group_box)
 
-    def show_plan_visualization(self, plano_info, chapa_w, chapa_h):
+    def show_plan_visualization(self, plano_info, chapa_w, chapa_h, color_map):
         offset = float(self.offset_input.text())
-        dialog = PlanVisualizationDialog(chapa_w, chapa_h, plano_info, offset, self)
+        dialog = PlanVisualizationDialog(chapa_w, chapa_h, plano_info, offset, color_map, self)
         dialog.exec_()

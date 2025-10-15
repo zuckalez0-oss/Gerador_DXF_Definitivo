@@ -33,7 +33,11 @@ def calcular_plano_de_corte(chapa_largura, chapa_altura, pecas):
             rid = str(peca_unica_id)
             
             retangulos_para_alocar.append((peca['largura'], peca['altura'], rid))
-            id_peca_map[rid] = {'largura': peca['largura'], 'altura': peca['altura']}
+            # --- MUDANÇA: Armazena também os furos no mapa de IDs ---
+            id_peca_map[rid] = {
+                'largura': peca['largura'], 'altura': peca['altura'],
+                'furos': peca.get('furos', [])
+            }
             
             # Incrementa o contador para a próxima peça
             peca_unica_id += 1
@@ -74,13 +78,32 @@ def calcular_plano_de_corte(chapa_largura, chapa_altura, pecas):
                         tipo_key = f"{id_peca_map[retangulo.rid]['largura']}x{id_peca_map[retangulo.rid]['altura']}"
                         pecas_contagem[tipo_key] = pecas_contagem.get(tipo_key, 0) + 1
                         
+                        # --- INÍCIO: LÓGICA DE FUROS E ROTAÇÃO ---
+                        peca_original = id_peca_map[retangulo.rid]
+                        furos_originais = peca_original.get('furos', [])
+                        furos_transformados = []
+                        
+                        # Verifica se a peça foi rotacionada
+                        foi_rotacionada = retangulo.width != peca_original['largura']
+
+                        if foi_rotacionada:
+                            # Transforma as coordenadas dos furos se a peça foi rotacionada 90 graus
+                            for furo in furos_originais:
+                                furos_transformados.append({
+                                    'diam': furo['diam'],
+                                    'x': furo['y'],
+                                    'y': peca_original['largura'] - furo['x']
+                                })
+                        else:
+                            furos_transformados = furos_originais
+                        # --- FIM: LÓGICA DE FUROS E ROTAÇÃO ---
+
                         plano_de_corte.append({
                             "x": retangulo.x,
                             "y": chapa_altura - retangulo.y - retangulo.height,
                             "largura": retangulo.width, "altura": retangulo.height,
-                            "rid": retangulo.rid,
-                            "tipo_largura": id_peca_map[retangulo.rid]['largura'],
-                            "tipo_altura": id_peca_map[retangulo.rid]['altura']
+                            "tipo_key": f"{peca_original['largura']}x{peca_original['altura']}",
+                            "furos": furos_transformados
                         })
                         
                     resumo_pecas = [{"tipo": tipo, "qtd": qtd} for tipo, qtd in pecas_contagem.items()]
