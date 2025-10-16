@@ -1,0 +1,18 @@
+2025-10-16 08:28:23,842 - INFO - Thread de cálculo iniciada.
+2025-10-16 08:28:23,842 - DEBUG - Iniciando cálculo para espessura 3.0 com 1 tipos de peças.
+2025-10-16 08:28:23,842 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0 com espessura <bound PYQT_SIGNAL status_update of CalculationThread object at 0x000002ACA57E92D0>mm.
+2025-10-16 08:28:23,842 - INFO - Novo melhor resultado: 2 chapas com MaxRectsBssf.
+2025-10-16 08:28:23,842 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 08:28:23,842 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 08:28:23,842 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 08:28:23,842 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 08:28:23,842 - ERROR - Erro na thread de cálculo: '<=' not supported between instances of 'PyQt5.QtCore.pyqtBoundSignal' and 'int'
+Traceback (most recent call last):
+  File "c:\Users\matheusr\Documents\Gerador_DXF_Definitivo\Versao-FInal\nesting_dialog.py", line 97, in run
+    resultado = calcular_plano_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, self.offset, self.status_update)
+  File "c:\Users\matheusr\Documents\Gerador_DXF_Definitivo\Versao-FInal\calculo_cortes.py", line 329, in calcular_plano_de_corte
+    item = {'largura': sobra['largura'], 'altura': sobra['altura'], 'peso': _calc_peso(area_sobra), 'quantidade': plano['repeticoes']}
+  File "c:\Users\matheusr\Documents\Gerador_DXF_Definitivo\Versao-FInal\calculo_cortes.py", line 156, in _calc_peso
+    if espessura is None or espessura <= 0:
+TypeError: '<=' not supported between instances of 'PyQt5.QtCore.pyqtBoundSignal' and 'int'
+2025-10-16 08:28:23,842 - INFO - Thread de cálculo finalizada.

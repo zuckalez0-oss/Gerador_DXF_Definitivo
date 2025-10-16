@@ -1,253 +1,84 @@
-2025-10-15 11:39:58,377 - INFO - Thread de cálculo iniciada.
-2025-10-15 11:39:58,377 - DEBUG - Iniciando cálculo para espessura 2.0 com 4 tipos de peças.
-2025-10-15 11:39:58,377 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0.
-2025-10-15 11:39:58,377 - WARNING - Muitas peças (550). Usando modo muito rápido (apenas MaxRectsBssf).
-2025-10-15 11:39:58,377 - DEBUG - Testando algoritmo: MaxRectsBssf
-2025-10-15 11:39:58,377 - DEBUG -   Peças alocadas: 13/550. Adicionando nova chapa.
-2025-10-15 11:39:58,389 - DEBUG -   Peças alocadas: 26/550. Adicionando nova chapa.
-2025-10-15 11:39:58,389 - DEBUG -   Peças alocadas: 39/550. Adicionando nova chapa.
-2025-10-15 11:39:58,389 - DEBUG -   Peças alocadas: 52/550. Adicionando nova chapa.
-2025-10-15 11:39:58,405 - DEBUG -   Peças alocadas: 65/550. Adicionando nova chapa.
-2025-10-15 11:39:58,405 - DEBUG -   Peças alocadas: 82/550. Adicionando nova chapa.
-2025-10-15 11:39:58,405 - DEBUG -   Peças alocadas: 103/550. Adicionando nova chapa.
-2025-10-15 11:39:58,421 - DEBUG -   Peças alocadas: 124/550. Adicionando nova chapa.
-2025-10-15 11:39:58,437 - DEBUG -   Peças alocadas: 145/550. Adicionando nova chapa.
-2025-10-15 11:39:58,437 - DEBUG -   Peças alocadas: 166/550. Adicionando nova chapa.
-2025-10-15 11:39:58,453 - DEBUG -   Peças alocadas: 187/550. Adicionando nova chapa.
-2025-10-15 11:39:58,469 - DEBUG -   Peças alocadas: 208/550. Adicionando nova chapa.
-2025-10-15 11:39:58,485 - DEBUG -   Peças alocadas: 229/550. Adicionando nova chapa.
-2025-10-15 11:39:58,501 - DEBUG -   Peças alocadas: 250/550. Adicionando nova chapa.
-2025-10-15 11:39:58,517 - DEBUG -   Peças alocadas: 271/550. Adicionando nova chapa.
-2025-10-15 11:39:58,533 - DEBUG -   Peças alocadas: 292/550. Adicionando nova chapa.
-2025-10-15 11:39:58,549 - DEBUG -   Peças alocadas: 313/550. Adicionando nova chapa.
-2025-10-15 11:39:58,580 - DEBUG -   Peças alocadas: 334/550. Adicionando nova chapa.
-2025-10-15 11:39:58,600 - DEBUG -   Peças alocadas: 355/550. Adicionando nova chapa.
-2025-10-15 11:39:58,612 - DEBUG -   Peças alocadas: 375/550. Adicionando nova chapa.
-2025-10-15 11:39:58,644 - DEBUG -   Peças alocadas: 397/550. Adicionando nova chapa.
-2025-10-15 11:39:58,659 - DEBUG -   Peças alocadas: 415/550. Adicionando nova chapa.
-2025-10-15 11:39:58,691 - DEBUG -   Peças alocadas: 425/550. Adicionando nova chapa.
-2025-10-15 11:39:58,719 - DEBUG -   Peças alocadas: 435/550. Adicionando nova chapa.
-2025-10-15 11:39:58,739 - DEBUG -   Peças alocadas: 445/550. Adicionando nova chapa.
-2025-10-15 11:39:58,771 - DEBUG -   Peças alocadas: 455/550. Adicionando nova chapa.
-2025-10-15 11:39:58,801 - DEBUG -   Peças alocadas: 465/550. Adicionando nova chapa.
-2025-10-15 11:39:58,819 - DEBUG -   Peças alocadas: 475/550. Adicionando nova chapa.
-2025-10-15 11:39:58,850 - DEBUG -   Peças alocadas: 485/550. Adicionando nova chapa.
-2025-10-15 11:39:58,886 - DEBUG -   Peças alocadas: 495/550. Adicionando nova chapa.
-2025-10-15 11:39:58,914 - DEBUG -   Peças alocadas: 505/550. Adicionando nova chapa.
-2025-10-15 11:39:58,945 - DEBUG -   Peças alocadas: 515/550. Adicionando nova chapa.
-2025-10-15 11:39:58,977 - DEBUG -   Peças alocadas: 525/550. Adicionando nova chapa.
-2025-10-15 11:39:59,009 - DEBUG -   Peças alocadas: 535/550. Adicionando nova chapa.
-2025-10-15 11:39:59,040 - DEBUG -   Peças alocadas: 545/550. Adicionando nova chapa.
-2025-10-15 11:39:59,088 - DEBUG - Algoritmo MaxRectsBssf finalizou com 36 chapas.
-2025-10-15 11:39:59,088 - INFO - Novo melhor resultado encontrado com 36 chapas usando MaxRectsBssf.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 9 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 17 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 21 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 1 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 20 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 14 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 1 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 10 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:39:59,088 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 5 peças.
-2025-10-15 11:39:59,088 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 3 sobras válidas.
-2025-10-15 11:39:59,088 - INFO - Cálculo finalizado. Melhor resultado: 36 chapas, 74.83% de aproveitamento.
-2025-10-15 11:39:59,088 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
-2025-10-15 11:39:59,088 - INFO - Thread de cálculo finalizada.
-2025-10-15 11:40:37,375 - INFO - Thread de cálculo iniciada.
-2025-10-15 11:40:37,391 - DEBUG - Iniciando cálculo para espessura 6.35 com 6 tipos de peças.
-2025-10-15 11:40:37,391 - INFO - Iniciando cálculo de corte para chapa 3000.0x1500.0.
-2025-10-15 11:40:37,391 - WARNING - Muitas peças (800). Usando modo muito rápido (apenas MaxRectsBssf).
-2025-10-15 11:40:37,391 - DEBUG - Testando algoritmo: MaxRectsBssf
-2025-10-15 11:40:37,391 - DEBUG -   Peças alocadas: 11/800. Adicionando nova chapa.
-2025-10-15 11:40:37,391 - DEBUG -   Peças alocadas: 22/800. Adicionando nova chapa.
-2025-10-15 11:40:37,407 - DEBUG -   Peças alocadas: 33/800. Adicionando nova chapa.
-2025-10-15 11:40:37,407 - DEBUG -   Peças alocadas: 44/800. Adicionando nova chapa.
-2025-10-15 11:40:37,423 - DEBUG -   Peças alocadas: 55/800. Adicionando nova chapa.
-2025-10-15 11:40:37,423 - DEBUG -   Peças alocadas: 66/800. Adicionando nova chapa.
-2025-10-15 11:40:37,439 - DEBUG -   Peças alocadas: 77/800. Adicionando nova chapa.
-2025-10-15 11:40:37,455 - DEBUG -   Peças alocadas: 88/800. Adicionando nova chapa.
-2025-10-15 11:40:37,471 - DEBUG -   Peças alocadas: 99/800. Adicionando nova chapa.
-2025-10-15 11:40:37,487 - DEBUG -   Peças alocadas: 110/800. Adicionando nova chapa.
-2025-10-15 11:40:37,518 - DEBUG -   Peças alocadas: 121/800. Adicionando nova chapa.
-2025-10-15 11:40:37,534 - DEBUG -   Peças alocadas: 132/800. Adicionando nova chapa.
-2025-10-15 11:40:37,566 - DEBUG -   Peças alocadas: 143/800. Adicionando nova chapa.
-2025-10-15 11:40:37,582 - DEBUG -   Peças alocadas: 154/800. Adicionando nova chapa.
-2025-10-15 11:40:37,614 - DEBUG -   Peças alocadas: 165/800. Adicionando nova chapa.
-2025-10-15 11:40:37,630 - DEBUG -   Peças alocadas: 176/800. Adicionando nova chapa.
-2025-10-15 11:40:37,662 - DEBUG -   Peças alocadas: 187/800. Adicionando nova chapa.
-2025-10-15 11:40:37,694 - DEBUG -   Peças alocadas: 198/800. Adicionando nova chapa.
-2025-10-15 11:40:37,726 - DEBUG -   Peças alocadas: 209/800. Adicionando nova chapa.
-2025-10-15 11:40:37,757 - DEBUG -   Peças alocadas: 220/800. Adicionando nova chapa.
-2025-10-15 11:40:37,805 - DEBUG -   Peças alocadas: 231/800. Adicionando nova chapa.
-2025-10-15 11:40:37,837 - DEBUG -   Peças alocadas: 242/800. Adicionando nova chapa.
-2025-10-15 11:40:37,885 - DEBUG -   Peças alocadas: 253/800. Adicionando nova chapa.
-2025-10-15 11:40:37,916 - DEBUG -   Peças alocadas: 264/800. Adicionando nova chapa.
-2025-10-15 11:40:37,964 - DEBUG -   Peças alocadas: 275/800. Adicionando nova chapa.
-2025-10-15 11:40:38,012 - DEBUG -   Peças alocadas: 319/800. Adicionando nova chapa.
-2025-10-15 11:40:38,060 - DEBUG -   Peças alocadas: 331/800. Adicionando nova chapa.
-2025-10-15 11:40:38,108 - DEBUG -   Peças alocadas: 334/800. Adicionando nova chapa.
-2025-10-15 11:40:38,155 - DEBUG -   Peças alocadas: 337/800. Adicionando nova chapa.
-2025-10-15 11:40:38,202 - DEBUG -   Peças alocadas: 340/800. Adicionando nova chapa.
-2025-10-15 11:40:38,250 - DEBUG -   Peças alocadas: 343/800. Adicionando nova chapa.
-2025-10-15 11:40:38,314 - DEBUG -   Peças alocadas: 346/800. Adicionando nova chapa.
-2025-10-15 11:40:38,362 - DEBUG -   Peças alocadas: 349/800. Adicionando nova chapa.
-2025-10-15 11:40:38,425 - DEBUG -   Peças alocadas: 352/800. Adicionando nova chapa.
-2025-10-15 11:40:38,488 - DEBUG -   Peças alocadas: 355/800. Adicionando nova chapa.
-2025-10-15 11:40:38,536 - DEBUG -   Peças alocadas: 358/800. Adicionando nova chapa.
-2025-10-15 11:40:38,600 - DEBUG -   Peças alocadas: 361/800. Adicionando nova chapa.
-2025-10-15 11:40:38,663 - DEBUG -   Peças alocadas: 364/800. Adicionando nova chapa.
-2025-10-15 11:40:38,727 - DEBUG -   Peças alocadas: 367/800. Adicionando nova chapa.
-2025-10-15 11:40:38,790 - DEBUG -   Peças alocadas: 370/800. Adicionando nova chapa.
-2025-10-15 11:40:38,870 - DEBUG -   Peças alocadas: 373/800. Adicionando nova chapa.
-2025-10-15 11:40:38,934 - DEBUG -   Peças alocadas: 376/800. Adicionando nova chapa.
-2025-10-15 11:40:38,997 - DEBUG -   Peças alocadas: 379/800. Adicionando nova chapa.
-2025-10-15 11:40:39,076 - DEBUG -   Peças alocadas: 382/800. Adicionando nova chapa.
-2025-10-15 11:40:39,140 - DEBUG -   Peças alocadas: 385/800. Adicionando nova chapa.
-2025-10-15 11:40:39,219 - DEBUG -   Peças alocadas: 388/800. Adicionando nova chapa.
-2025-10-15 11:40:39,299 - DEBUG -   Peças alocadas: 391/800. Adicionando nova chapa.
-2025-10-15 11:40:39,378 - DEBUG -   Peças alocadas: 394/800. Adicionando nova chapa.
-2025-10-15 11:40:39,457 - DEBUG -   Peças alocadas: 397/800. Adicionando nova chapa.
-2025-10-15 11:40:39,535 - DEBUG -   Peças alocadas: 400/800. Adicionando nova chapa.
-2025-10-15 11:40:39,614 - DEBUG -   Peças alocadas: 403/800. Adicionando nova chapa.
-2025-10-15 11:40:39,692 - DEBUG -   Peças alocadas: 406/800. Adicionando nova chapa.
-2025-10-15 11:40:39,771 - DEBUG -   Peças alocadas: 409/800. Adicionando nova chapa.
-2025-10-15 11:40:39,865 - DEBUG -   Peças alocadas: 412/800. Adicionando nova chapa.
-2025-10-15 11:40:39,943 - DEBUG -   Peças alocadas: 415/800. Adicionando nova chapa.
-2025-10-15 11:40:40,037 - DEBUG -   Peças alocadas: 418/800. Adicionando nova chapa.
-2025-10-15 11:40:40,131 - DEBUG -   Peças alocadas: 421/800. Adicionando nova chapa.
-2025-10-15 11:40:40,210 - DEBUG -   Peças alocadas: 424/800. Adicionando nova chapa.
-2025-10-15 11:40:40,305 - DEBUG -   Peças alocadas: 427/800. Adicionando nova chapa.
-2025-10-15 11:40:40,399 - DEBUG -   Peças alocadas: 430/800. Adicionando nova chapa.
-2025-10-15 11:40:40,494 - DEBUG -   Peças alocadas: 433/800. Adicionando nova chapa.
-2025-10-15 11:40:40,604 - DEBUG -   Peças alocadas: 436/800. Adicionando nova chapa.
-2025-10-15 11:40:40,698 - DEBUG -   Peças alocadas: 439/800. Adicionando nova chapa.
-2025-10-15 11:40:40,792 - DEBUG -   Peças alocadas: 442/800. Adicionando nova chapa.
-2025-10-15 11:40:40,904 - DEBUG -   Peças alocadas: 445/800. Adicionando nova chapa.
-2025-10-15 11:40:40,999 - DEBUG -   Peças alocadas: 448/800. Adicionando nova chapa.
-2025-10-15 11:40:41,094 - DEBUG -   Peças alocadas: 451/800. Adicionando nova chapa.
-2025-10-15 11:40:41,205 - DEBUG -   Peças alocadas: 454/800. Adicionando nova chapa.
-2025-10-15 11:40:41,316 - DEBUG -   Peças alocadas: 457/800. Adicionando nova chapa.
-2025-10-15 11:40:41,411 - DEBUG -   Peças alocadas: 460/800. Adicionando nova chapa.
-2025-10-15 11:40:41,523 - DEBUG -   Peças alocadas: 463/800. Adicionando nova chapa.
-2025-10-15 11:40:41,633 - DEBUG -   Peças alocadas: 466/800. Adicionando nova chapa.
-2025-10-15 11:40:41,745 - DEBUG -   Peças alocadas: 469/800. Adicionando nova chapa.
-2025-10-15 11:40:41,855 - DEBUG -   Peças alocadas: 472/800. Adicionando nova chapa.
-2025-10-15 11:40:41,966 - DEBUG -   Peças alocadas: 475/800. Adicionando nova chapa.
-2025-10-15 11:40:42,077 - DEBUG -   Peças alocadas: 478/800. Adicionando nova chapa.
-2025-10-15 11:40:42,188 - DEBUG -   Peças alocadas: 481/800. Adicionando nova chapa.
-2025-10-15 11:40:42,312 - DEBUG -   Peças alocadas: 484/800. Adicionando nova chapa.
-2025-10-15 11:40:42,425 - DEBUG -   Peças alocadas: 487/800. Adicionando nova chapa.
-2025-10-15 11:40:42,536 - DEBUG -   Peças alocadas: 490/800. Adicionando nova chapa.
-2025-10-15 11:40:42,663 - DEBUG -   Peças alocadas: 493/800. Adicionando nova chapa.
-2025-10-15 11:40:42,790 - DEBUG -   Peças alocadas: 496/800. Adicionando nova chapa.
-2025-10-15 11:40:42,917 - DEBUG -   Peças alocadas: 499/800. Adicionando nova chapa.
-2025-10-15 11:40:43,028 - DEBUG -   Peças alocadas: 502/800. Adicionando nova chapa.
-2025-10-15 11:40:43,155 - DEBUG -   Peças alocadas: 505/800. Adicionando nova chapa.
-2025-10-15 11:40:43,298 - DEBUG -   Peças alocadas: 508/800. Adicionando nova chapa.
-2025-10-15 11:40:43,425 - DEBUG -   Peças alocadas: 511/800. Adicionando nova chapa.
-2025-10-15 11:40:43,552 - DEBUG -   Peças alocadas: 514/800. Adicionando nova chapa.
-2025-10-15 11:40:43,679 - DEBUG -   Peças alocadas: 517/800. Adicionando nova chapa.
-2025-10-15 11:40:43,821 - DEBUG -   Peças alocadas: 520/800. Adicionando nova chapa.
-2025-10-15 11:40:43,948 - DEBUG -   Peças alocadas: 523/800. Adicionando nova chapa.
-2025-10-15 11:40:44,090 - DEBUG -   Peças alocadas: 526/800. Adicionando nova chapa.
-2025-10-15 11:40:44,218 - DEBUG -   Peças alocadas: 529/800. Adicionando nova chapa.
-2025-10-15 11:40:44,361 - DEBUG -   Peças alocadas: 532/800. Adicionando nova chapa.
-2025-10-15 11:40:44,504 - DEBUG -   Peças alocadas: 535/800. Adicionando nova chapa.
-2025-10-15 11:40:44,662 - DEBUG -   Peças alocadas: 538/800. Adicionando nova chapa.
-2025-10-15 11:40:44,805 - DEBUG -   Peças alocadas: 541/800. Adicionando nova chapa.
-2025-10-15 11:40:44,948 - DEBUG -   Peças alocadas: 544/800. Adicionando nova chapa.
-2025-10-15 11:40:45,091 - DEBUG -   Peças alocadas: 547/800. Adicionando nova chapa.
-2025-10-15 11:40:45,233 - DEBUG -   Peças alocadas: 550/800. Adicionando nova chapa.
-2025-10-15 11:40:45,376 - DEBUG -   Peças alocadas: 553/800. Adicionando nova chapa.
-2025-10-15 11:40:45,519 - DEBUG -   Peças alocadas: 556/800. Adicionando nova chapa.
-2025-10-15 11:40:45,677 - DEBUG -   Peças alocadas: 559/800. Adicionando nova chapa.
-2025-10-15 11:40:45,820 - DEBUG -   Peças alocadas: 562/800. Adicionando nova chapa.
-2025-10-15 11:40:45,978 - DEBUG -   Peças alocadas: 565/800. Adicionando nova chapa.
-2025-10-15 11:40:46,121 - DEBUG -   Peças alocadas: 568/800. Adicionando nova chapa.
-2025-10-15 11:40:46,278 - DEBUG -   Peças alocadas: 571/800. Adicionando nova chapa.
-2025-10-15 11:40:46,420 - DEBUG -   Peças alocadas: 574/800. Adicionando nova chapa.
-2025-10-15 11:40:46,579 - DEBUG -   Peças alocadas: 577/800. Adicionando nova chapa.
-2025-10-15 11:40:46,737 - DEBUG -   Peças alocadas: 580/800. Adicionando nova chapa.
-2025-10-15 11:40:46,895 - DEBUG -   Peças alocadas: 583/800. Adicionando nova chapa.
-2025-10-15 11:40:47,053 - DEBUG -   Peças alocadas: 586/800. Adicionando nova chapa.
-2025-10-15 11:40:47,211 - DEBUG -   Peças alocadas: 589/800. Adicionando nova chapa.
-2025-10-15 11:40:47,369 - DEBUG -   Peças alocadas: 592/800. Adicionando nova chapa.
-2025-10-15 11:40:47,528 - DEBUG -   Peças alocadas: 595/800. Adicionando nova chapa.
-2025-10-15 11:40:47,703 - DEBUG -   Peças alocadas: 598/800. Adicionando nova chapa.
-2025-10-15 11:40:47,862 - DEBUG -   Peças alocadas: 601/800. Adicionando nova chapa.
-2025-10-15 11:40:48,020 - DEBUG -   Peças alocadas: 604/800. Adicionando nova chapa.
-2025-10-15 11:40:48,194 - DEBUG -   Peças alocadas: 607/800. Adicionando nova chapa.
-2025-10-15 11:40:48,352 - DEBUG -   Peças alocadas: 610/800. Adicionando nova chapa.
-2025-10-15 11:40:48,526 - DEBUG -   Peças alocadas: 613/800. Adicionando nova chapa.
-2025-10-15 11:40:48,701 - DEBUG -   Peças alocadas: 616/800. Adicionando nova chapa.
-2025-10-15 11:40:48,875 - DEBUG -   Peças alocadas: 619/800. Adicionando nova chapa.
-2025-10-15 11:40:49,034 - DEBUG -   Peças alocadas: 622/800. Adicionando nova chapa.
-2025-10-15 11:40:49,217 - DEBUG -   Peças alocadas: 625/800. Adicionando nova chapa.
-2025-10-15 11:40:49,406 - DEBUG -   Peças alocadas: 628/800. Adicionando nova chapa.
-2025-10-15 11:40:49,585 - DEBUG -   Peças alocadas: 631/800. Adicionando nova chapa.
-2025-10-15 11:40:49,772 - DEBUG -   Peças alocadas: 634/800. Adicionando nova chapa.
-2025-10-15 11:40:49,961 - DEBUG -   Peças alocadas: 637/800. Adicionando nova chapa.
-2025-10-15 11:40:50,140 - DEBUG -   Peças alocadas: 640/800. Adicionando nova chapa.
-2025-10-15 11:40:50,375 - DEBUG -   Peças alocadas: 643/800. Adicionando nova chapa.
-2025-10-15 11:40:50,709 - DEBUG -   Peças alocadas: 646/800. Adicionando nova chapa.
-2025-10-15 11:40:51,131 - DEBUG -   Peças alocadas: 649/800. Adicionando nova chapa.
-2025-10-15 11:40:51,432 - DEBUG -   Peças alocadas: 652/800. Adicionando nova chapa.
-2025-10-15 11:40:51,687 - DEBUG -   Peças alocadas: 655/800. Adicionando nova chapa.
-2025-10-15 11:40:51,948 - DEBUG -   Peças alocadas: 658/800. Adicionando nova chapa.
-2025-10-15 11:40:52,186 - DEBUG -   Peças alocadas: 661/800. Adicionando nova chapa.
-2025-10-15 11:40:52,374 - DEBUG -   Peças alocadas: 664/800. Adicionando nova chapa.
-2025-10-15 11:40:52,612 - DEBUG -   Peças alocadas: 667/800. Adicionando nova chapa.
-2025-10-15 11:40:52,866 - DEBUG -   Peças alocadas: 670/800. Adicionando nova chapa.
-2025-10-15 11:40:53,134 - DEBUG -   Peças alocadas: 673/800. Adicionando nova chapa.
-2025-10-15 11:40:53,386 - DEBUG -   Peças alocadas: 676/800. Adicionando nova chapa.
-2025-10-15 11:40:53,624 - DEBUG -   Peças alocadas: 679/800. Adicionando nova chapa.
-2025-10-15 11:40:53,880 - DEBUG -   Peças alocadas: 682/800. Adicionando nova chapa.
-2025-10-15 11:40:54,101 - DEBUG -   Peças alocadas: 685/800. Adicionando nova chapa.
-2025-10-15 11:40:54,358 - DEBUG -   Peças alocadas: 688/800. Adicionando nova chapa.
-2025-10-15 11:40:54,571 - DEBUG -   Peças alocadas: 691/800. Adicionando nova chapa.
-2025-10-15 11:40:54,793 - DEBUG -   Peças alocadas: 694/800. Adicionando nova chapa.
-2025-10-15 11:40:55,078 - DEBUG -   Peças alocadas: 697/800. Adicionando nova chapa.
-2025-10-15 11:40:55,335 - DEBUG -   Peças alocadas: 700/800. Adicionando nova chapa.
-2025-10-15 11:40:55,555 - DEBUG -   Peças alocadas: 703/800. Adicionando nova chapa.
-2025-10-15 11:40:55,809 - DEBUG -   Peças alocadas: 706/800. Adicionando nova chapa.
-2025-10-15 11:40:56,028 - DEBUG -   Peças alocadas: 709/800. Adicionando nova chapa.
-2025-10-15 11:40:56,291 - DEBUG -   Peças alocadas: 712/800. Adicionando nova chapa.
-2025-10-15 11:40:56,523 - DEBUG -   Peças alocadas: 715/800. Adicionando nova chapa.
-2025-10-15 11:40:56,768 - DEBUG -   Peças alocadas: 718/800. Adicionando nova chapa.
-2025-10-15 11:40:57,017 - DEBUG -   Peças alocadas: 721/800. Adicionando nova chapa.
-2025-10-15 11:40:57,288 - DEBUG -   Peças alocadas: 724/800. Adicionando nova chapa.
-2025-10-15 11:40:57,529 - DEBUG -   Peças alocadas: 727/800. Adicionando nova chapa.
-2025-10-15 11:40:57,774 - DEBUG -   Peças alocadas: 730/800. Adicionando nova chapa.
-2025-10-15 11:40:58,029 - DEBUG -   Peças alocadas: 733/800. Adicionando nova chapa.
-2025-10-15 11:40:58,266 - DEBUG -   Peças alocadas: 736/800. Adicionando nova chapa.
-2025-10-15 11:40:58,473 - DEBUG -   Peças alocadas: 739/800. Adicionando nova chapa.
-2025-10-15 11:40:58,693 - DEBUG -   Peças alocadas: 742/800. Adicionando nova chapa.
-2025-10-15 11:40:58,997 - DEBUG -   Peças alocadas: 745/800. Adicionando nova chapa.
-2025-10-15 11:40:59,266 - DEBUG -   Peças alocadas: 748/800. Adicionando nova chapa.
-2025-10-15 11:40:59,568 - DEBUG -   Peças alocadas: 750/800. Adicionando nova chapa.
-2025-10-15 11:40:59,841 - DEBUG -   Peças alocadas: 759/800. Adicionando nova chapa.
-2025-10-15 11:41:00,112 - DEBUG -   Peças alocadas: 768/800. Adicionando nova chapa.
-2025-10-15 11:41:00,360 - DEBUG -   Peças alocadas: 777/800. Adicionando nova chapa.
-2025-10-15 11:41:00,638 - DEBUG -   Peças alocadas: 786/800. Adicionando nova chapa.
-2025-10-15 11:41:00,913 - DEBUG -   Peças alocadas: 795/800. Adicionando nova chapa.
-2025-10-15 11:41:01,149 - DEBUG - Algoritmo MaxRectsBssf finalizou com 173 chapas.
-2025-10-15 11:41:01,149 - INFO - Novo melhor resultado encontrado com 173 chapas usando MaxRectsBssf.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 11 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 3 sobras válidas.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 32 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 7 sobras válidas.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 3 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 13 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 4 sobras válidas.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 9 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 2 sobras válidas.
-2025-10-15 11:41:01,149 - DEBUG - Iniciando 'encontrar_sobras' para chapa 3000.0x1500.0 com 39 peças.
-2025-10-15 11:41:01,149 - DEBUG - Finalizado 'encontrar_sobras'. Encontradas 7 sobras válidas.
-2025-10-15 11:41:01,149 - INFO - Cálculo finalizado. Melhor resultado: 173 chapas, 65.26% de aproveitamento.
-2025-10-15 11:41:01,149 - DEBUG - Cálculo para espessura 6.35 concluído. Emitindo resultado.
-2025-10-15 11:41:01,149 - INFO - Thread de cálculo finalizada.
+2025-10-16 11:02:27,050 - INFO - Thread de cálculo iniciada.
+2025-10-16 11:02:27,050 - DEBUG - Iniciando cálculo para espessura 2.0 com 1 tipos de peças.
+2025-10-16 11:02:27,050 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 2.0mm ---
+2025-10-16 11:02:27,050 - INFO - Ordenando 1 tipos de peças por área para otimização.
+2025-10-16 11:02:27,050 - INFO - Iniciando cálculo de corte para 1 tipos de peças em 200 bins disponíveis.
+2025-10-16 11:02:27,066 - INFO - Novo melhor resultado: 2 chapas com MaxRectsBssf.
+2025-10-16 11:02:27,066 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,066 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 9 sobras válidas.
+2025-10-16 11:02:27,066 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,066 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:27,099 - INFO - Cálculo finalizado. Melhor resultado: 2 chapas, 66.67% de aproveitamento.
+2025-10-16 11:02:27,099 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-16 11:02:27,099 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
+2025-10-16 11:02:27,099 - DEBUG - Iniciando cálculo para espessura 3.0 com 1 tipos de peças.
+2025-10-16 11:02:27,099 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 3.0mm ---
+2025-10-16 11:02:27,099 - INFO - Ordenando 1 tipos de peças por área para otimização.
+2025-10-16 11:02:27,099 - INFO - Iniciando cálculo de corte para 1 tipos de peças em 200 bins disponíveis.
+2025-10-16 11:02:27,099 - INFO - Novo melhor resultado: 3 chapas com MaxRectsBssf.
+2025-10-16 11:02:27,099 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,099 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 11:02:27,099 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,099 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:27,140 - INFO - Cálculo finalizado. Melhor resultado: 3 chapas, 66.67% de aproveitamento.
+2025-10-16 11:02:27,140 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-16 11:02:27,140 - DEBUG - Cálculo para espessura 3.0 concluído. Emitindo resultado.
+2025-10-16 11:02:27,140 - DEBUG - Iniciando cálculo para espessura 4.75 com 1 tipos de peças.
+2025-10-16 11:02:27,140 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 4.75mm ---
+2025-10-16 11:02:27,140 - INFO - Ordenando 1 tipos de peças por área para otimização.
+2025-10-16 11:02:27,140 - INFO - Iniciando cálculo de corte para 1 tipos de peças em 200 bins disponíveis.
+2025-10-16 11:02:27,140 - INFO - Novo melhor resultado: 6 chapas com MaxRectsBssf.
+2025-10-16 11:02:27,140 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,140 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 11:02:27,140 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:27,140 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 11:02:27,194 - INFO - Cálculo finalizado. Melhor resultado: 6 chapas, 66.67% de aproveitamento.
+2025-10-16 11:02:27,194 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-16 11:02:27,194 - DEBUG - Cálculo para espessura 4.75 concluído. Emitindo resultado.
+2025-10-16 11:02:27,194 - INFO - Thread de cálculo finalizada.
+2025-10-16 11:02:51,942 - INFO - Thread de cálculo iniciada.
+2025-10-16 11:02:51,942 - DEBUG - Iniciando cálculo para espessura 12.7 com 7 tipos de peças.
+2025-10-16 11:02:51,942 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 12.7mm ---
+2025-10-16 11:02:51,942 - INFO - Ordenando 7 tipos de peças por área para otimização.
+2025-10-16 11:02:51,942 - INFO - Iniciando cálculo de corte para 7 tipos de peças em 200 bins disponíveis.
+2025-10-16 11:02:52,033 - INFO - Novo melhor resultado: 52 chapas com MaxRectsBssf.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 5 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,033 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 1 sobras válidas.
+2025-10-16 11:02:52,033 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,049 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-16 11:02:52,049 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:02:52,049 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 1 sobras válidas.
+2025-10-16 11:02:52,049 - INFO - Cálculo finalizado. Melhor resultado: 52 chapas, 73.45% de aproveitamento.
+2025-10-16 11:02:52,049 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-16 11:02:52,049 - DEBUG - Cálculo para espessura 12.7 concluído. Emitindo resultado.
+2025-10-16 11:02:52,049 - INFO - Thread de cálculo finalizada.
+2025-10-16 11:04:06,592 - INFO - Thread de cálculo iniciada.
+2025-10-16 11:04:06,592 - DEBUG - Iniciando cálculo para espessura 2.0 com 3 tipos de peças.
+2025-10-16 11:04:06,592 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 2.0mm ---
+2025-10-16 11:04:06,592 - INFO - Ordenando 3 tipos de peças por área para otimização.
+2025-10-16 11:04:06,592 - INFO - Iniciando cálculo de corte para 3 tipos de peças em 200 bins disponíveis.
+2025-10-16 11:04:06,606 - INFO - Novo melhor resultado: 8 chapas com MaxRectsBssf.
+2025-10-16 11:04:06,606 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:04:06,606 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:04:06,606 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:04:06,606 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:04:06,606 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:04:06,606 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 4 sobras válidas.
+2025-10-16 11:04:06,606 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:04:06,606 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 6 sobras válidas.
+2025-10-16 11:04:06,606 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-16 11:04:06,606 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 3 sobras válidas.
+2025-10-16 11:04:06,654 - INFO - Cálculo finalizado. Melhor resultado: 8 chapas, 82.53% de aproveitamento.
+2025-10-16 11:04:06,654 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-16 11:04:06,654 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
+2025-10-16 11:04:06,654 - INFO - Thread de cálculo finalizada.

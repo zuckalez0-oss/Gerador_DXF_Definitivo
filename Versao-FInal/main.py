@@ -21,7 +21,7 @@ from history_dialog import HistoryDialog
 from processing import ProcessThread
 from nesting_dialog import NestingDialog
 from dxf_engine import get_dxf_bounding_box # <<< IMPORTAÇÃO NECESSÁRIA >>>
-from calculo_cortes import calcular_plano_de_corte
+from calculo_cortes import orquestrar_planos_de_corte
 
 # =============================================================================
 # ESTILO VISUAL DA APLICAÇÃO (QSS - Qt StyleSheet)
@@ -175,6 +175,7 @@ class MainWindow(QMainWindow):
         self.history_manager = HistoryManager()
         
         self.colunas_df = ['nome_arquivo', 'forma', 'espessura', 'qtd', 'largura', 'altura', 'diametro', 'rt_base', 'rt_height', 'trapezoid_large_base', 'trapezoid_small_base', 'trapezoid_height', 'furos']
+        self.colunas_df = ['nome_arquivo', 'forma', 'espessura', 'qtd', 'largura', 'altura', 'diametro', 'rt_base', 'rt_height', 'trapezoid_large_base', 'trapezoid_small_base', 'trapezoid_height', 'furos', 'dxf_path']
         self.manual_df = pd.DataFrame(columns=self.colunas_df)
         self.excel_df = pd.DataFrame(columns=self.colunas_df)
         self.furos_atuais = []
@@ -242,7 +243,7 @@ class MainWindow(QMainWindow):
         name_layout.setSpacing(5)
         manual_layout.addRow("Nome/ID da Peça:", name_layout)
         self.forma_combo = QComboBox()
-        self.forma_combo.addItems(['rectangle', 'circle', 'right_triangle', 'trapezoid'])
+        self.forma_combo.addItems(['rectangle', 'circle', 'right_triangle', 'trapezoid', 'dxf_shape'])
         self.espessura_input, self.qtd_input = QLineEdit(), QLineEdit()
         manual_layout.addRow("Forma:", self.forma_combo)
         manual_layout.addRow("Espessura (mm):", self.espessura_input)
@@ -342,13 +343,9 @@ class MainWindow(QMainWindow):
         v_splitter.addWidget(list_group)
         v_splitter.addWidget(log_group)
 
-        v_splitter.setStretchFactor(0, 1) 
+        v_splitter.setStretchFactor(0, 1)
         v_splitter.setStretchFactor(1, 0)
-        v_splitter.setSizes([400, 50])
-        
-        v_splitter.setStretchFactor(0, 0) # Painel superior não estica
-        v_splitter.setStretchFactor(1, 1) # Tabela de peças é a principal a esticar
-        v_splitter.setSizes([300, 400, 150]) # Alturas iniciais (ajuste conforme preferência)
+        v_splitter.setSizes([400, 150])
 
         self.add_piece_btn = QPushButton("Adicionar Peça à Lista")
         main_layout.addWidget(top_container_widget)
@@ -512,9 +509,9 @@ class MainWindow(QMainWindow):
             return
         combined_df = pd.concat(dfs_to_concat, ignore_index=True)
         # --- CORREÇÃO: Inclui 'circle' na verificação de formas válidas ---
-        valid_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
+        valid_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid', 'dxf_shape'])].copy()
         if valid_df.empty:
-            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle', 'circle', 'right_triangle' ou 'trapezoid'.")
+            QMessageBox.information(self, "Nenhuma Peça Válida", "O cálculo de aproveitamento só pode ser feito com peças da forma 'rectangle', 'circle', 'right_triangle', 'trapezoid' ou 'dxf_shape'.")
             return
         # Passa o DataFrame com as formas válidas para o diálogo
         dialog = NestingDialog(valid_df, self)
@@ -527,87 +524,91 @@ class MainWindow(QMainWindow):
         if not ok2: return
         offset_str, ok3 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Offset entre Peças (mm):", text="8")
         if not ok3: return
+        margin_str, ok4 = QInputDialog.getText(self, "Parâmetro de Aproveitamento", "Margem da Chapa (mm):", text="10")
+        if not ok4: return
         try:
             chapa_largura = float(chapa_largura_str)
             chapa_altura = float(chapa_altura_str)
             offset = float(offset_str)
+            margin = float(margin_str)
         except (ValueError, TypeError):
             QMessageBox.critical(self, "Erro de Entrada", "Valores de chapa e offset devem ser numéricos.")
             return
+
         project_number = self.projeto_input.text().strip()
         if not project_number:
             QMessageBox.warning(self, "Nenhum Projeto Ativo", "Inicie um novo projeto para poder exportá-lo.")
             return
-        # --- CORREÇÃO FUTUREWARNING: Concatena apenas os dataframes não vazios ---
+
         dfs_to_concat = [df for df in [self.excel_df, self.manual_df] if not df.empty]
         if not dfs_to_concat:
             QMessageBox.warning(self, "Lista Vazia", "Não há peças na lista para exportar.")
             return
         combined_df = pd.concat(dfs_to_concat, ignore_index=True)
+
         default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V4_NOVA_{project_number}.xlsx")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Resumo do Projeto", default_filename, "Excel Files (*.xlsx)")
         if not save_path:
             return
+
         self.set_buttons_enabled_on_process(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setValue(0)
         self.log_text.clear()
         self.log_text.append("Iniciando exportação para Excel...")
         QApplication.processEvents()
+
         try:
             template_path = 'CUSTO_PLASMA-LASER_V4_NOVA.xlsx'
             if not os.path.exists(template_path):
-                QMessageBox.critical(self, "Template Não Encontrado", f"O arquivo modelo '{template_path}' não foi encontrado no diretório da aplicação.")
+                QMessageBox.critical(self, "Template Não Encontrado", f"O arquivo modelo '{template_path}' não foi encontrado.")
                 return
+
             wb = load_workbook(template_path)
             ws = wb.active
             self.log_text.append("Preenchendo lista de peças...")
             QApplication.processEvents()
+
             start_row = 1
-            while ws.cell(row=start_row, column=1).value is not None:
-                start_row += 1
-            total_pecas = len(combined_df)
-            for index, row_data in enumerate(combined_df.iterrows()):
-                row_data = row_data[1]
+            while ws.cell(row=start_row, column=1).value is not None: start_row += 1
+
+            for index, (_, row_data) in enumerate(combined_df.iterrows()):
                 current_row = start_row + index
                 ws.cell(row=current_row, column=1, value=project_number)
                 ws.cell(row=current_row, column=2, value=row_data.get('nome_arquivo', ''))
                 ws.cell(row=current_row, column=3, value=row_data.get('qtd', 0))
+                
                 forma = str(row_data.get('forma', '')).lower()
-                largura = row_data.get('largura', 0)
-                altura = row_data.get('altura', 0)
+                largura, altura = row_data.get('largura', 0), row_data.get('altura', 0)
                 forma_map = {'circle': 'C', 'trapezoid': 'TP', 'right_triangle': 'T'}
-                if forma == 'rectangle':
-                    forma_abreviada = 'Q' if largura == altura and largura > 0 else 'R'
-                else:
-                    forma_abreviada = forma_map.get(forma, '')
+                forma_abreviada = 'Q' if forma == 'rectangle' and largura == altura and largura > 0 else forma_map.get(forma, 'R' if forma == 'rectangle' else '')
                 ws.cell(row=current_row, column=4, value=forma_abreviada)
+
                 furos = row_data.get('furos', [])
                 num_furos = len(furos) if isinstance(furos, list) else 0
                 ws.cell(row=current_row, column=5, value=num_furos)
-                # --- CORREÇÃO: Acessa o diâmetro do furo apenas se a lista não estiver vazia ---
-                diametro_furo = 0
-                if num_furos > 0 and furos: # Garante que a lista não está vazia antes de acessar o índice
-                    diametro_furo = furos[0].get('diam', 0)
-                ws.cell(row=current_row, column=6, value=diametro_furo)
+                ws.cell(row=current_row, column=6, value=furos[0].get('diam', 0) if num_furos > 0 else 0)
                 ws.cell(row=current_row, column=7, value=row_data.get('espessura', 0))
                 ws.cell(row=current_row, column=8, value=largura)
                 ws.cell(row=current_row, column=9, value=altura)
-                self.progress_bar.setValue(int(((index + 1) / (total_pecas * 2)) * 100))
+                self.progress_bar.setValue(int(((index + 1) / (len(combined_df) * 2)) * 100))
+
             self.log_text.append("Calculando aproveitamento de chapas...")
             QApplication.processEvents()
-            # --- CORREÇÃO: Inclui todas as formas válidas no cálculo para o Excel ---
-            valid_nesting_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
+
+            valid_nesting_df = combined_df[combined_df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid', 'dxf_shape'])].copy()
             valid_nesting_df['espessura'] = valid_nesting_df['espessura'].astype(float)
             grouped = valid_nesting_df.groupby('espessura')
+            
             current_row = 209
-            ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = wb.active['A1'].font.copy(bold=True, size=14)
+            ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = Font(bold=True, size=14)
             current_row += 2
-            # --- CORREÇÃO: Inicializa a lista de sobras ANTES do loop ---
-            todas_as_sobras = []
+
             for espessura, group in grouped:
                 pecas_para_calcular = []
                 for _, row in group.iterrows():
+                    # Adiciona peças à lista de cálculo, já com offset
+                    # (A lógica para diferentes formas permanece a mesma)
                     if row['forma'] == 'rectangle' and row['largura'] > 0 and row['altura'] > 0:
                         pecas_para_calcular.append({'forma': 'rectangle', 'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'circle' and row['diametro'] > 0:
@@ -616,76 +617,98 @@ class MainWindow(QMainWindow):
                         pecas_para_calcular.append({'forma': 'right_triangle', 'largura': row['rt_base'] + offset, 'altura': row['rt_height'] + offset, 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'trapezoid' and row['trapezoid_large_base'] > 0 and row['trapezoid_height'] > 0:
                         pecas_para_calcular.append({'forma': 'trapezoid', 'largura': row['trapezoid_large_base'] + offset, 'altura': row['trapezoid_height'] + offset, 'small_base': row['trapezoid_small_base'] + offset, 'quantidade': int(row['qtd'])})
+                    elif row['forma'] == 'dxf_shape' and row['largura'] > 0 and row['altura'] > 0:
+                        pecas_para_calcular.append({'forma': 'dxf_shape', 'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'dxf_path': row['dxf_path'], 'quantidade': int(row['qtd'])})
 
                 if not pecas_para_calcular: continue
-                resultado = calcular_plano_de_corte(chapa_largura, chapa_altura, pecas_para_calcular)
-                ws.cell(row=current_row, column=1, value=f"Espessura: {espessura} mm").font = wb.active['A1'].font.copy(bold=True, size=12)
+
+                # --- CORREÇÃO: Garante que a função orquestradora seja chamada ---
+                # A função orquestradora é essencial para a reutilização de sobras.
+                # Ela executa o cálculo em duas fases para maximizar o aproveitamento.
+                self.log_text.append(f"Otimizando espessura {espessura}mm (pode levar um momento)...")
+                QApplication.processEvents()
+                resultado = orquestrar_planos_de_corte(chapa_largura, chapa_altura, pecas_para_calcular, offset, margin, espessura, status_signal_emitter=None)
+                
+                if not resultado: continue
+
+                ws.cell(row=current_row, column=1, value=f"Espessura: {espessura} mm").font = Font(bold=True, size=12)
                 current_row += 1
                 total_chapas_usadas = resultado['total_chapas']
-                peso_kg = (chapa_largura/1000) * (chapa_altura/1000) * (espessura/1000) * 7.85 * 1000 * total_chapas_usadas
+                peso_total_chapas_kg = (chapa_largura/1000) * (chapa_altura/1000) * espessura * 7.85 * total_chapas_usadas
                 ws.cell(row=current_row, column=1, value=f"Total de Chapas: {total_chapas_usadas}")
                 ws.cell(row=current_row, column=2, value=f"Aproveitamento: {resultado['aproveitamento_geral']}")
-                ws.cell(row=current_row, column=3, value=f"Peso Total Estimado: {peso_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
+                ws.cell(row=current_row, column=3, value=f"Peso Total das Chapas: {peso_total_chapas_kg:.2f} kg").font = Font(bold=True)
                 current_row += 2
+
                 for i, plano_info in enumerate(resultado['planos_unicos']):
-                    ws.cell(row=current_row, column=1, value=f"Plano de Corte {i+1} (Repetir {plano_info['repeticoes']}x)").font = wb.active['A1'].font.copy(italic=True)
+                    ws.cell(row=current_row, column=1, value=f"Plano de Corte {i+1} (Repetir {plano_info['repeticoes']}x)").font = Font(italic=True)
                     current_row += 1
                     ws.cell(row=current_row, column=2, value="Peças neste plano:")
                     current_row += 1
                     for item in plano_info['resumo_pecas']:
-                        dimensoes_sem_offset = item['tipo'].split('x')
-                        largura_real = float(dimensoes_sem_offset[0]) - offset
-                        altura_real = float(dimensoes_sem_offset[1]) - offset
-                        texto_peca = f"- {item['qtd']}x de {largura_real:.0f}x{altura_real:.0f} mm"
-                        ws.cell(row=current_row, column=3, value=texto_peca)
+                        ws.cell(row=current_row, column=3, value=f"- {item['qtd']}x de {item['tipo']}")
                         current_row += 1
-                    # --- INÍCIO: COLETA DE SOBRAS POR PLANO ---
-                    todas_as_sobras.extend(plano_info.get('sobras', []) * plano_info['repeticoes'])
                     current_row += 1
+
+                # --- INÍCIO: NOVA LÓGICA PARA ESCRITA DO RESUMO DE SUCATA ---
+                sucata_info = resultado.get('sucata_detalhada')
+                if sucata_info:
+                    bold_font = Font(bold=True)
+                    # 1. Peso do Offset
+                    ws.cell(row=current_row, column=1, value="Peso do Offset (perda de corte):").font = bold_font
+                    ws.cell(row=current_row, column=2, value=f"{sucata_info['peso_offset']:.2f} kg")
+                    current_row += 2
+
+                    # 2. Sobras Aproveitáveis
+                    ws.cell(row=current_row, column=1, value="Sobras Aproveitáveis (Retalhos > 300x300 mm)").font = bold_font
+                    current_row += 1
+                    sobras_aproveitaveis = sucata_info['sobras_aproveitaveis']
+                    if not sobras_aproveitaveis:
+                        ws.cell(row=current_row, column=2, value="- Nenhuma")
+                        current_row += 1
+                    else:
+                        from collections import Counter
+                        contagem = Counter((s['largura'], s['altura'], f"{s['peso']:.2f}") for s in sobras_aproveitaveis for _ in range(s['quantidade']))
+                        total_peso_aproveitavel = sum(s['peso'] * s['quantidade'] for s in sobras_aproveitaveis)
+                        for (larg, alt, peso_unit), qtd in contagem.items():
+                            ws.cell(row=current_row, column=2, value=f"- {qtd}x de {larg:.0f}x{alt:.0f} mm (Peso unit: {peso_unit} kg)")
+                            current_row += 1
+                        ws.cell(row=current_row, column=2, value=f"Peso Total Aproveitável: {total_peso_aproveitavel:.2f} kg").font = bold_font
+                        current_row += 1
+                    current_row += 1
+
+                    # 3. Sucatas com Dimensões
+                    ws.cell(row=current_row, column=1, value="Sucatas com Dimensões").font = bold_font
+                    current_row += 1
+                    sucatas_dim = sucata_info['sucatas_dimensionadas']
+                    if not sucatas_dim:
+                        ws.cell(row=current_row, column=2, value="- Nenhuma")
+                        current_row += 1
+                    else:
+                        from collections import Counter
+                        contagem = Counter((s['largura'], s['altura'], f"{s['peso']:.2f}") for s in sucatas_dim for _ in range(s['quantidade']))
+                        total_peso_sucata_dim = sum(s['peso'] * s['quantidade'] for s in sucatas_dim)
+                        for (larg, alt, peso_unit), qtd in contagem.items():
+                            ws.cell(row=current_row, column=2, value=f"- {qtd}x de {larg:.0f}x{alt:.0f} mm (Peso unit: {peso_unit} kg)")
+                            current_row += 1
+                        ws.cell(row=current_row, column=2, value=f"Peso Total (Sucata Dimensionada): {total_peso_sucata_dim:.2f} kg").font = bold_font
+                        current_row += 1
+                    current_row += 1
+
+                    # 4. Demais Sucatas
+                    ws.cell(row=current_row, column=1, value="Demais Sucatas (cavacos, etc):").font = bold_font
+                    ws.cell(row=current_row, column=2, value=f"{sucata_info['peso_demais_sucatas']:.2f} kg")
+                    current_row += 2
+                # --- FIM: NOVA LÓGICA ---
+
                 ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
                 cell = ws.cell(row=current_row, column=1)
                 cell.fill = PatternFill(start_color="D3D3D3", end_color="D3D3D3", fill_type="solid")
                 current_row += 2
                 self.progress_bar.setValue(50 + int((current_row / 400) * 50))
+
             self.log_text.append("Salvando arquivo Excel...")
             QApplication.processEvents()
-            # --- INÍCIO: CÁLCULO E ESCRITA DO PESO DAS SOBRAS ---
-            # --- INÍCIO: LÓGICA APRIMORADA PARA DETALHAR SOBRAS ---
-            if todas_as_sobras:
-                sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
-                sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
-    
-                area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
-                area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
-    
-                peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
-                peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
-    
-                # Agrupa as sobras por dimensão para contagem
-                from collections import Counter
-                contagem_aproveitaveis = Counter([(s['largura'], s['altura']) for s in sobras_aproveitaveis])
-                contagem_sucata = Counter([(s['largura'], s['altura']) for s in sobras_sucata])
-    
-                # Escreve o resumo detalhado no Excel
-                ws.cell(row=current_row, column=1, value="Resumo das Sobras Aproveitáveis (> 300x300 mm)").font = wb.active['A1'].font.copy(bold=True)
-                current_row += 1
-                if not contagem_aproveitaveis:
-                    ws.cell(row=current_row, column=2, value="- Nenhuma")
-                    current_row += 1
-                for (larg, alt), qtd in contagem_aproveitaveis.items():
-                    ws.cell(row=current_row, column=2, value=f"- {qtd}x Retalho de {larg:.0f}x{alt:.0f} mm")
-                    current_row += 1
-                ws.cell(row=current_row, column=2, value=f"Peso Total Aproveitável: {peso_aproveitavel_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
-                current_row += 2
-    
-                ws.cell(row=current_row, column=1, value="Resumo das Sobras (Sucata)").font = wb.active['A1'].font.copy(bold=True)
-                current_row += 1
-                for (larg, alt), qtd in contagem_sucata.items():
-                    ws.cell(row=current_row, column=2, value=f"- {qtd}x Retalho de {larg:.0f}x{alt:.0f} mm")
-                    current_row += 1
-                ws.cell(row=current_row, column=2, value=f"Peso Total (Sucata): {peso_sucata_kg:.2f} kg").font = wb.active['A1'].font.copy(bold=True)
-                current_row += 2
-            # --- FIM: LÓGICA APRIMORADA ---
             wb.save(save_path)
             self.progress_bar.setValue(100)
             self.log_text.append(f"Resumo do projeto salvo com sucesso em: {save_path}")
@@ -905,13 +928,15 @@ class MainWindow(QMainWindow):
                 new_piece = {
                     'nome_arquivo': nome_arquivo,
                     'forma': 'rectangle', # Sempre será retângulo
+                    'forma': 'dxf_shape',
                     'espessura': 0.0, # Padrão, para ser editado pelo usuário
                     'qtd': 1, # Padrão
                     'largura': round(largura, 2),
                     'altura': round(altura, 2),
                     'diametro': 0.0, 'rt_base': 0.0, 'rt_height': 0.0,
                     'trapezoid_large_base': 0.0, 'trapezoid_small_base': 0.0, 'trapezoid_height': 0.0,
-                    'furos': [] # Furos não são importados neste contexto
+                    'furos': [],
+                    'dxf_path': file_path # Armazena o caminho do arquivo
                 }
                 self.manual_df = pd.concat([self.manual_df, pd.DataFrame([new_piece])], ignore_index=True)
                 imported_count += 1
@@ -919,10 +944,7 @@ class MainWindow(QMainWindow):
                 self.log_text.append(f"AVISO: Não foi possível obter as dimensões do arquivo '{os.path.basename(file_path)}'. Pode estar vazio ou corrompido.")
         
         self.log_text.append(f"--- {imported_count} arquivo(s) DXF importado(s) com sucesso. ---")
-        self.update_table_display()
 
-    def clear_excel_data(self):
-        self.excel_df = pd.DataFrame(columns=self.colunas_df); self.file_label.setText("Nenhuma planilha selecionada"); self.update_table_display()
     
     def replicate_holes(self):
         try:
@@ -979,3 +1001,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    

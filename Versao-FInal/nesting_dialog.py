@@ -5,15 +5,18 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QFormLayout, QLineEdit,
                              QPushButton, QDialogButtonBox, QMessageBox, 
                              QGroupBox, QLabel, QWidget, QHBoxLayout, QScrollArea,
                              QFileDialog)
+
+
 import logging
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QPointF
 from PyQt5.QtGui import QPainter, QColor, QPen, QBrush, QPainterPath
 # Importações para gerar PDF
-from reportlab.pdfgen import canvas
+import ezdxf
 from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 import pdf_generator
 # Importe sua função de cálculo
-from calculo_cortes import calcular_plano_de_corte, status_signaler
+from calculo_cortes import orquestrar_planos_de_corte, status_signaler
 
 # --- INÍCIO: CLASSE DA THREAD DE CÁLCULO ---
 class CalculationThread(QThread):
@@ -27,12 +30,13 @@ class CalculationThread(QThread):
     # Sinal para atualizações de status em tempo real
     status_update = pyqtSignal(str)
 
-    def __init__(self, chapa_largura, chapa_altura, offset, grouped_df, parent=None):
+    def __init__(self, chapa_largura, chapa_altura, offset, margin, grouped_df, parent=None):
         super().__init__(parent)
         self.chapa_largura = chapa_largura
         self.chapa_altura = chapa_altura
         self.offset = offset
         self.grouped_df = grouped_df
+        self.margin = margin
 
     def run(self):
         try:
@@ -75,6 +79,15 @@ class CalculationThread(QThread):
                             'quantidade': int(row['qtd']),
                             'furos': row.get('furos', [])
                         })
+                    elif row['forma'] == 'dxf_shape' and row['largura'] > 0 and row['altura'] > 0:
+                        pecas_para_calcular.append({
+                            'forma': 'dxf_shape',
+                            'largura': row['largura'] + self.offset,
+                            'altura': row['altura'] + self.offset,
+                            'dxf_path': row['dxf_path'],
+                            'quantidade': int(row['qtd']),
+                            'furos': row.get('furos', [])
+                        })
                 # --- FIM: LÓGICA PARA INCLUIR CÍRCULOS ---
 
                 if not pecas_para_calcular:
@@ -82,7 +95,7 @@ class CalculationThread(QThread):
                 
                 logging.debug(f"Iniciando cálculo para espessura {espessura} com {len(pecas_para_calcular)} tipos de peças.")
                 # Chama a função de cálculo pesada
-                resultado = calcular_plano_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, self.status_update)
+                resultado = orquestrar_planos_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, self.offset, self.margin, espessura, status_signal_emitter=self.status_update)
                 logging.debug(f"Cálculo para espessura {espessura} concluído. Emitindo resultado.")
                 self.result_ready.emit(espessura, resultado)
         except Exception as e:
@@ -105,6 +118,31 @@ def generate_distinct_colors(n):
         colors.append(QColor(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255)))
     return colors
 # --- FIM: FUNÇÃO PARA GERAR CORES DISTINTAS ---
+
+def _draw_dxf_entities(painter, dxf_path, offset_x, offset_y, scale):
+    """Lê um arquivo DXF e desenha suas entidades usando QPainter."""
+    try:
+        doc = ezdxf.readfile(dxf_path)
+        msp = doc.modelspace()
+        
+        path = QPainterPath()
+        for entity in msp:
+            if entity.dxftype() == 'LWPOLYLINE':
+                points = [(p[0] * scale + offset_x, p[1] * scale + offset_y) for p in entity.get_points('xy')]
+                if points:
+                    path.moveTo(points[0][0], points[0][1])
+                    for i in range(1, len(points)):
+                        path.lineTo(points[i][0], points[i][1])
+                if entity.is_closed:
+                    path.closeSubpath()
+            elif entity.dxftype() == 'CIRCLE':
+                center = entity.dxf.center
+                radius = entity.dxf.radius
+                cx, cy, r = center.x * scale + offset_x, center.y * scale + offset_y, radius * scale
+                path.addEllipse(cx - r, cy - r, r * 2, r * 2)
+        painter.drawPath(path)
+    except (IOError, ezdxf.DXFStructureError) as e:
+        logging.error(f"Erro ao ler ou desenhar DXF '{dxf_path}': {e}")
 
 # Classe para desenhar a visualização do plano de corte
 class CuttingPlanWidget(QWidget):
@@ -137,7 +175,7 @@ class CuttingPlanWidget(QWidget):
         painter.setPen(QPen(QColor("#333333")))
         for peca in self.plano:
             x, y, w, h, tipo_key = peca['x'], peca['y'], peca['largura'], peca['altura'], peca['tipo_key']
-            
+            # As coordenadas X, Y vêm com a origem no canto superior esquerdo.
             rect_x = int(offset_x + x * scale)
             rect_y = int(offset_y + y * scale)
             rect_w = int(w * scale)
@@ -182,18 +220,19 @@ class CuttingPlanWidget(QWidget):
                     
                     # Trapézio 2 (rotacionado 180 graus e deslocado)
                     # --- CORREÇÃO DA LÓGICA DE DESENHO DO SEGUNDO TRAPÉZIO ---
-                    x_base2 = rect_x + large_base_scaled
                     path2 = QPainterPath()
                     # Ponto inferior esquerdo do 2º trapézio (coincide com inferior direito do 1º)
                     path2.moveTo(rect_x + large_base_scaled, rect_y)
-                    # Ponto inferior direito do 2º trapézio
-                    path2.lineTo(rect_x + large_base_scaled + small_base_scaled, rect_y)
+                    # Ponto inferior direito do 2º trapézio (canto do bounding box)
+                    path2.lineTo(rect_x + rect_w, rect_y)
                     # Ponto superior direito do 2º trapézio
-                    path2.lineTo(rect_x + large_base_scaled + offset_x_trap, rect_y + height_scaled)
+                    path2.lineTo(rect_x + rect_w - offset_x_trap, rect_y + height_scaled)
                     # Ponto superior esquerdo do 2º trapézio (coincide com superior direito do 1º)
                     path2.lineTo(rect_x + large_base_scaled - offset_x_trap, rect_y + height_scaled)
                     path2.closeSubpath()
                     painter.drawPath(path1); painter.drawPath(path2)
+            elif forma == 'dxf_shape':
+                _draw_dxf_entities(painter, peca['dxf_path'], rect_x, rect_y, scale)
             else: # 'rectangle'
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             # --- FIM: DESENHO CONDICIONAL ---
@@ -223,6 +262,7 @@ class CuttingPlanWidget(QWidget):
                 else:
                     painter.setBrush(QBrush(QColor(230, 230, 230, 120))) # Cinza claro semi-transparente
                     painter.setPen(QPen(QColor("#888888"), 1, Qt.DashLine))
+                # As coordenadas da sobra já vêm com a origem no topo, igual às peças.
                 rect_x, rect_y = int(offset_x + sobra['x'] * scale), int(offset_y + sobra['y'] * scale)
                 rect_w, rect_h = int(sobra['largura'] * scale), int(sobra['altura'] * scale)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
@@ -235,7 +275,10 @@ class PlanVisualizationDialog(QDialog):
         self.chapa_altura = chapa_altura
         self.plano = plano_info['plano']
         self.repeticoes = plano_info['repeticoes']
-        self.plano_sobras = plano_info.get('sobras', []) # Armazena as sobras
+        # --- CORREÇÃO: Acessa a lista de sobras corretamente ---
+        # O cálculo agora retorna uma lista de dicionários, não um dicionário com chaves.
+        sobras_raw = plano_info.get('sobras', [])
+        self.plano_sobras = sobras_raw if isinstance(sobras_raw, list) else []
         self.resumo_pecas = plano_info['resumo_pecas']
         self.offset = offset
         self.color_map = color_map
@@ -365,9 +408,11 @@ class NestingDialog(QDialog):
         self.chapa_largura_input = QLineEdit("3000")
         self.chapa_altura_input = QLineEdit("1500")
         self.offset_input = QLineEdit("8")
+        self.margin_input = QLineEdit("10") # <<< NOVO CAMPO
         form_layout.addRow("Largura da Chapa (mm):", self.chapa_largura_input)
         form_layout.addRow("Altura da Chapa (mm):", self.chapa_altura_input)
         form_layout.addRow("Offset entre Peças (mm):", self.offset_input)
+        form_layout.addRow("Margem da Chapa (mm):", self.margin_input) # <<< NOVA LINHA
         input_group.setLayout(form_layout)
         self.main_layout.addWidget(input_group)
         
@@ -376,6 +421,7 @@ class NestingDialog(QDialog):
         self.calculate_btn = QPushButton("Calcular")
         self.calculate_btn.clicked.connect(self.run_calculation)
         self.export_report_btn = QPushButton("Exportar Relatório PDF")
+        self.export_dxf_btn = QPushButton("Exportar Planos para DXF") # Novo botão
         self.export_report_btn.clicked.connect(self.export_full_report_to_pdf)
         self.export_report_btn.setEnabled(False) # Desabilitado até o cálculo ser feito
         action_layout.addWidget(self.calculate_btn)
@@ -413,18 +459,19 @@ class NestingDialog(QDialog):
             chapa_largura = float(self.chapa_largura_input.text())
             chapa_altura = float(self.chapa_altura_input.text())
             offset = float(self.offset_input.text())
+            margin = float(self.margin_input.text())
         except ValueError:
             QMessageBox.critical(self, "Erro de Entrada", "Por favor, insira valores numéricos válidos.")
             return
 
         # Filtra apenas peças retangulares e agrupa por espessura
         # --- MUDANÇA: Inclui círculos no filtro ---
-        valid_shapes_df = self.df[self.df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid'])].copy()
+        valid_shapes_df = self.df[self.df['forma'].isin(['rectangle', 'circle', 'right_triangle', 'trapezoid', 'dxf_shape'])].copy()
         valid_shapes_df['espessura'] = valid_shapes_df['espessura'].astype(float)
         grouped = valid_shapes_df.groupby('espessura')
 
-        if len(grouped) == 0:
-            QMessageBox.information(self, "Nenhuma Peça", "Nenhuma peça retangular, circular, triangular ou trapezoidal encontrada para o cálculo.")
+        if len(grouped) == 0: # Atualize a mensagem de erro
+            QMessageBox.information(self, "Nenhuma Peça", "Nenhuma peça válida (retângulo, círculo, triângulo, trapézio ou DXF) encontrada para o cálculo.")
             return
 
         # --- INÍCIO: LÓGICA DA THREAD ---
@@ -432,7 +479,7 @@ class NestingDialog(QDialog):
         self.prepare_for_calculation()
 
         # 2. Cria e inicia a thread
-        self.thread = CalculationThread(chapa_largura, chapa_altura, offset, grouped)
+        self.thread = CalculationThread(chapa_largura, chapa_altura, offset, margin, grouped)
         self.thread.result_ready.connect(self.on_result_ready)
         self.thread.finished.connect(self.on_calculation_finished)
         self.thread.error.connect(self.on_calculation_error)
@@ -479,19 +526,136 @@ class NestingDialog(QDialog):
         # Habilita o botão de exportar se houver resultados
         if self.calculation_results:
             self.export_report_btn.setEnabled(True)
+            self.export_dxf_btn.setEnabled(True)
+
 
     def export_full_report_to_pdf(self):
         if not self.calculation_results:
             QMessageBox.warning(self, "Sem Dados", "Nenhum resultado de cálculo para exportar. Por favor, clique em 'Calcular' primeiro.")
             return
 
+        # --- INÍCIO: CÁLCULO DA ÁREA REAL DAS PEÇAS ---
+        import math
+        df_copy = self.df.copy()
+        df_copy['espessura'] = df_copy['espessura'].astype(float)
+        grouped_by_thickness = df_copy.groupby('espessura')
+
+        total_piece_areas = {}
+        for espessura, group in grouped_by_thickness:
+            total_area = 0
+            for _, row in group.iterrows():
+                forma = row.get('forma', 'rectangle')
+                qtd = row.get('qtd', 1)
+                
+                piece_area = 0
+                if forma == 'rectangle':
+                    piece_area = row.get('largura', 0) * row.get('altura', 0)
+                elif forma == 'circle':
+                    piece_area = math.pi * (row.get('diametro', 0) / 2)**2
+                elif forma == 'right_triangle':
+                    piece_area = (row.get('rt_base', 0) * row.get('rt_height', 0)) / 2
+                elif forma == 'trapezoid':
+                    b1 = row.get('trapezoid_large_base', 0)
+                    b2 = row.get('trapezoid_small_base', 0)
+                    h = row.get('trapezoid_height', 0)
+                    piece_area = ((b1 + b2) * h) / 2
+                elif forma == 'dxf_shape':
+                    piece_area = row.get('largura', 0) * row.get('altura', 0)
+                    
+                total_area += piece_area * qtd
+            total_piece_areas[espessura] = total_area
+        # --- FIM: CÁLCULO DA ÁREA REAL DAS PEÇAS ---
+
         default_path = os.path.join(os.path.expanduser("~"), "Downloads", "Relatorio_Aproveitamento.pdf")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Relatório de Aproveitamento", default_path, "PDF Files (*.pdf)")
+        
         if save_path:
+            # --- INÍCIO: CÁLCULO DO OFFSET (LÓGICA CORRIGIDA) ---
+            for espessura, resultado in self.calculation_results.items():
+                area_total_chapas = resultado.get('area_total_chapas', 0)
+                area_real_pecas = total_piece_areas.get(espessura, 0)
+                area_sobra_aproveitavel = resultado.get('total_area_sobra_aproveitavel', 0)
+                area_sobra_sucata = resultado.get('total_area_sobra_sucata', 0)
+
+                offset_area = area_total_chapas - (area_real_pecas + area_sobra_aproveitavel + area_sobra_sucata)
+                if offset_area < 0:
+                    offset_area = 0
+
+                offset_weight = (offset_area / 1_000_000) * espessura * 7.85
+
+                resultado['offset_area'] = offset_area
+                resultado['offset_weight'] = offset_weight
+            # --- FIM: CÁLCULO DO OFFSET (LÓGICA CORRIGIDA) ---
+
             c = canvas.Canvas(save_path, pagesize=A4)
-            pdf_generator.gerar_pdf_aproveitamento_completo(c, self.calculation_results, float(self.chapa_largura_input.text()), float(self.chapa_altura_input.text()))
+            pdf_generator.gerar_relatorio_completo_pdf(c, self.calculation_results, float(self.chapa_largura_input.text()), float(self.chapa_altura_input.text()))
             c.save()
             QMessageBox.information(self, "Sucesso", f"Relatório PDF salvo em:\n{save_path}")
+
+    def export_layouts_to_dxf(self):
+        """Exporta todos os planos de corte calculados para um único arquivo DXF."""
+        if not self.calculation_results:
+            QMessageBox.warning(self, "Sem Dados", "Nenhum resultado de cálculo para exportar.")
+            return
+
+        default_path = os.path.join(os.path.expanduser("~"), "Downloads", "Aproveitamento_Completo.dxf")
+        save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Layouts em DXF", default_path, "DXF Files (*.dxf)")
+
+        if not save_path:
+            return
+
+        try:
+            doc = ezdxf.new('R2010')
+            msp = doc.modelspace()
+            chapa_w = float(self.chapa_largura_input.text())
+            chapa_h = float(self.chapa_altura_input.text())
+            margin = float(self.margin_input.text())
+            x_offset = 0
+
+            for espessura, resultado in self.calculation_results.items():
+                for plano_info in resultado['planos_unicos']:
+                    for i in range(plano_info['repeticoes']):
+                        # Desenha o contorno da chapa
+                        msp.add_lwpolyline([(x_offset, 0), (x_offset + chapa_w, 0), (x_offset + chapa_w, chapa_h), (x_offset, chapa_h)], close=True, dxfattribs={'layer': 'CONTORNO_CHAPA'})
+
+                        # Desenha as peças
+                        for peca in plano_info['plano']:
+                            layer_name = peca['tipo_key'].replace(' ', '_').replace('Ø', 'D').replace('/', '_')
+                            if layer_name not in doc.layers:
+                                doc.layers.new(name=layer_name)
+                            
+                            px, py, pw, ph = peca['x'], peca['y'], peca['largura'], peca['altura']
+                            
+                            # Converte Y para o sistema de coordenadas do DXF (origem embaixo)
+                            # A coordenada 'py' já vem com a origem no topo, então a conversão é direta.
+                            py_dxf = chapa_h - py - ph 
+                            forma = peca.get('forma', 'rectangle')
+                            if forma == 'rectangle':
+                                msp.add_lwpolyline([(x_offset + px, py_dxf), (x_offset + px + pw, py_dxf), (x_offset + px + pw, py_dxf + ph), (x_offset + px, py_dxf + ph)], close=True, dxfattribs={'layer': layer_name})
+                            elif forma == 'circle':
+                                cx = x_offset + px + pw / 2
+                                cy = py_dxf + ph / 2
+                                msp.add_circle((cx, cy), radius=peca['diametro']/2, dxfattribs={'layer': layer_name})
+                            elif forma == 'paired_triangle':
+                                x, y = x_offset + px, py_dxf
+                                msp.add_lwpolyline([(x, y), (x + pw, y), (x, y + ph)], close=True, dxfattribs={'layer': layer_name})
+                                msp.add_lwpolyline([(x + pw, y + ph), (x, y + ph), (x + pw, y)], close=True, dxfattribs={'layer': layer_name})
+                            elif forma == 'paired_trapezoid':
+                                dims = peca['orig_dims']
+                                l_base, s_base, h = dims['large_base'], dims['small_base'], dims['height']
+                                x_trap_offset = (l_base - s_base) / 2
+                                x, y = x_offset + px, py_dxf
+                                # Trapézio 1
+                                msp.add_lwpolyline([(x, y), (x + l_base, y), (x + l_base - x_trap_offset, y + h), (x + x_trap_offset, y + h)], close=True, dxfattribs={'layer': layer_name})
+                                # Trapézio 2
+                                msp.add_lwpolyline([(x + l_base, y), (x + pw, y), (x + pw - x_trap_offset, y + h), (x + l_base, y + h)], close=True, dxfattribs={'layer': layer_name})
+
+                        x_offset += chapa_w + 100 # Espaço entre as chapas
+
+            doc.saveas(save_path)
+            QMessageBox.information(self, "Sucesso", f"Layouts DXF salvos em:\n{save_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro na Exportação DXF", f"Ocorreu um erro ao gerar o arquivo DXF:\n{e}")
 
     def display_results_for_thickness(self, espessura, resultado, chapa_w, chapa_h):
         # Cria um grupo para cada espessura

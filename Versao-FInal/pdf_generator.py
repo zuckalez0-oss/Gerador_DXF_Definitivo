@@ -1,5 +1,6 @@
 # pdf_generator.py
 
+import ezdxf
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
@@ -100,6 +101,48 @@ def desenhar_cota_vertical(c, y1, y2, x, texto):
     c.setFillColorRGB(0, 0, 0)
     c.drawCentredString(0, -1.5*mm, texto)
     c.restoreState()
+
+def _draw_dxf_entities_pdf(c, dxf_path, offset_x, offset_y, scale):
+    """
+    Lê um arquivo DXF e desenha suas entidades em um canvas do ReportLab.
+    
+    :param c: O canvas do ReportLab.
+    :param dxf_path: Caminho para o arquivo DXF.
+    :param offset_x: Deslocamento X no PDF.
+    :param offset_y: Deslocamento Y no PDF (canto superior da peça).
+    :param scale: Fator de escala para o desenho.
+    """
+    try:
+        doc = ezdxf.readfile(dxf_path)
+        msp = doc.modelspace()
+
+        for entity in msp:
+            path = c.beginPath()
+            entity_type = entity.dxftype()
+
+            if entity_type in ('LINE', 'LWPOLYLINE', 'POLYLINE'):
+                # Para LWPOLYLINE e POLYLINE, obtemos os pontos
+                if entity_type in ('LWPOLYLINE', 'POLYLINE'):
+                    points = list(entity.points())
+                # Para LINE, criamos uma lista com os dois pontos
+                else: # 'LINE'
+                    points = [entity.dxf.start, entity.dxf.end]
+
+                if not points: continue
+
+                # Transforma e adiciona o primeiro ponto ao caminho
+                start_point = points[0]
+                path.moveTo(offset_x + start_point[0] * scale, offset_y - start_point[1] * scale)
+                
+                # Adiciona os pontos restantes
+                for p in points[1:]:
+                    path.lineTo(offset_x + p[0] * scale, offset_y - p[1] * scale)
+                
+                if entity.is_closed:
+                    path.close()
+                c.drawPath(path, stroke=1, fill=1)
+    except (IOError, ezdxf.DXFStructureError) as e:
+        print(f"Erro ao ler ou desenhar DXF '{dxf_path}' no PDF: {e}")
 
 def desenhar_cota_diametro_furo(c, x, y, raio, diametro_real):
     c.saveState()
@@ -331,11 +374,45 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano, color_map_qt
             rgb_color = color_map.get(tipo_key, default_color)
             c.setFillColorRGB(*default_color)
 
-        c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
+        # --- INÍCIO: DESENHO CONDICIONAL PARA TODAS AS FORMAS ---
+        forma = peca.get('forma', 'rectangle')
+        if forma == 'circle':
+            diametro_original = peca.get('diametro', 0)
+            raio_desenhado = (diametro_original * escala) / 2
+            centro_x = rect_x + rect_w / 2
+            centro_y = rect_y + rect_h / 2
+            c.circle(centro_x, centro_y, raio_desenhado, stroke=1, fill=1)
+        elif forma == 'paired_triangle':
+            path = c.beginPath(); path.moveTo(rect_x, rect_y); path.lineTo(rect_x + rect_w, rect_y); path.lineTo(rect_x, rect_y + rect_h); path.close()
+            c.drawPath(path, stroke=1, fill=1)
+            path = c.beginPath(); path.moveTo(rect_x + rect_w, rect_y + rect_h); path.lineTo(rect_x, rect_y + rect_h); path.lineTo(rect_x + rect_w, rect_y); path.close()
+            c.drawPath(path, stroke=1, fill=1)
+        elif forma == 'paired_trapezoid':
+            orig_dims = peca.get('orig_dims')
+            if orig_dims:
+                large_base_s = orig_dims['large_base'] * escala
+                small_base_s = orig_dims['small_base'] * escala
+                height_s = orig_dims['height'] * escala
+                offset_x_s = (large_base_s - small_base_s) / 2
+                
+                path1 = c.beginPath(); path1.moveTo(rect_x, rect_y); path1.lineTo(rect_x + large_base_s, rect_y); path1.lineTo(rect_x + large_base_s - offset_x_s, rect_y + height_s); path1.lineTo(rect_x + offset_x_s, rect_y + height_s); path1.close()
+                c.drawPath(path1, stroke=1, fill=1)
+
+                path2 = c.beginPath(); path2.moveTo(rect_x + large_base_s, rect_y); path2.lineTo(rect_x + rect_w, rect_y); path2.lineTo(rect_x + rect_w - offset_x_s, rect_y + height_s); path2.lineTo(rect_x + large_base_s, rect_y + height_s); path2.close()
+                c.drawPath(path2, stroke=1, fill=1)
+        elif forma == 'dxf_shape':
+            # O offset Y precisa ser o topo do bounding box da peça
+            _draw_dxf_entities_pdf(c, peca['dxf_path'], rect_x, rect_y + rect_h, escala)
+        else: # 'rectangle'
+            c.rect(rect_x, rect_y, rect_w, rect_h, stroke=1, fill=1)
+        # --- FIM: DESENHO CONDICIONAL ---
 
         # 3. Desenha os furos
         furos = peca.get('furos', [])
         if furos:
+            # Salva o estado da cor de preenchimento atual
+            current_fill_color = c._fillColor
+            # Define a cor do furo
             c.setFillColorRGB(1, 1, 1) # Furos brancos
             for furo in furos:
                 furo_x_centro = rect_x + furo['x'] * escala
@@ -387,7 +464,7 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
         
         # --- INÍCIO: DESENHO CONDICIONAL (RETÂNGULO OU CÍRCULO) ---
         rect_y_inferior = y_origem_desenho - (peca['y'] * escala) - (peca['altura'] * escala)
-        if peca.get('forma') == 'circle':
+        if peca.get('forma') == 'circle': # A coordenada Y da peça já está invertida.
             diametro_original = peca.get('diametro', 0)
             raio_desenhado = (diametro_original * escala) / 2
             centro_x = (x_origem_desenho + peca['x'] * escala) + (peca['largura'] * escala) / 2
@@ -421,14 +498,16 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
                 c.drawPath(path1, stroke=1, fill=1)
 
                 # --- CORREÇÃO DA LÓGICA DE DESENHO DO SEGUNDO TRAPÉZIO ---
-                x_base2 = x + large_base_s
                 path2 = c.beginPath()
-                path2.moveTo(x + large_base_s, y) # Ponto inferior esquerdo do 2º
-                path2.lineTo(x + large_base_s + small_base_s, y) # Ponto inferior direito do 2º
-                path2.lineTo(x + large_base_s + offset_x_s, y + height_s) # Ponto superior direito do 2º
-                path2.lineTo(x + large_base_s - offset_x_s, y + height_s) # Ponto superior esquerdo do 2º
+                path2.moveTo(x + large_base_s, y) # Ponto inf esq (coincide com inf dir do 1º)
+                path2.lineTo(x + w, y) # Ponto inf dir
+                path2.lineTo(x + w - offset_x_s, y + height_s) # Ponto sup dir
+                path2.lineTo(x + large_base_s, y + height_s) # Ponto sup esq (coincide com sup dir do 1º)
                 path2.close()
                 c.drawPath(path2, stroke=1, fill=1)
+        elif peca.get('forma') == 'dxf_shape':
+            # Para o PDF, o Y do offset precisa ser o topo do bounding box da peça alocada
+            _draw_dxf_entities_pdf(c, peca['dxf_path'], x_origem_desenho + peca['x'] * escala, rect_y_inferior + peca['altura'] * escala, escala)
 
         else: # 'rectangle'
             c.rect(x_origem_desenho + peca['x'] * escala, rect_y_inferior, peca['largura'] * escala, peca['altura'] * escala, stroke=1, fill=1)
@@ -444,6 +523,7 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
             else:
                 c.setFillColorRGB(0.9, 0.9, 0.9, 0.5) # Cinza claro semi-transparente
                 c.setStrokeColorRGB(0.5, 0.5, 0.5)
+            # As coordenadas da sobra já vêm com a origem no topo, igual às peças.
             sobra_y_inferior = y_origem_desenho - (sobra['y'] * escala) - (sobra['altura'] * escala)
             c.rect(x_origem_desenho + sobra['x'] * escala, sobra_y_inferior, sobra['largura'] * escala, sobra['altura'] * escala, stroke=1, fill=1)
 
@@ -462,7 +542,7 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
         if y_lista < (y_cursor - area_desenho_h + 5*mm):
             c.drawString(x_lista, y_lista, "...")
             break
-        texto_peca = f"- {item['qtd']}x de {item['tipo']} mm"
+        texto_peca = f"- {item['qtd']}x de {item['tipo']}"
         c.drawString(x_lista, y_lista, texto_peca)
         y_lista -= 3.5*mm
 
@@ -493,7 +573,7 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
 
     return y_cursor - area_desenho_h - 5*mm # Retorna a nova posição Y
 
-def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, chapa_altura):
+def gerar_relatorio_completo_pdf(c, resultados_completos, chapa_largura, chapa_altura):
     """
     Gera um relatório PDF completo com todos os planos de corte para todas as espessuras.
     """
@@ -545,22 +625,47 @@ def gerar_pdf_aproveitamento_completo(c, resultados_completos, chapa_largura, ch
         # --- INÍCIO: RESUMO DE PESO DAS SOBRAS ---
         from collections import Counter
         todas_as_sobras = []
-        for plano in resultado['planos_unicos']:
+        for plano in resultado.get('planos_unicos', []):
             todas_as_sobras.extend(plano.get('sobras', []) * plano['repeticoes'])
         
-        if todas_as_sobras:
-            sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
-            sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
-            area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
-            area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
-            peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
-            peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
+        sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
+        sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
+        
+        area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
+        area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
+        
+        peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
+        peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
+        
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(MARGEM_GERAL, y_cursor, f"Peso Sobras Aproveitáveis: {peso_aproveitavel_kg:.2f} kg")
+        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso Sobras (Sucata): {peso_sucata_kg:.2f} kg")
+        y_cursor -= 5*mm
+        # --- FIM: RESUMO DE PESO DAS SOBRAS ---
+
+        # --- INÍCIO: EXIBIÇÃO DAS ÁREAS NÃO CONTABILIZADAS (PERDA INTERSTICIAL) ---
+        perda_intersticial = resultado.get('perda_intersticial', 0)
+        if perda_intersticial > 0:
+            area_nao_contabilizada_m2 = perda_intersticial / 1_000_000
+            peso_nao_contabilizado_kg = area_nao_contabilizada_m2 * espessura * 7.85
             
             c.setFont("Helvetica-Bold", 9)
-            c.drawString(MARGEM_GERAL, y_cursor, f"Peso Sobras Aproveitáveis: {peso_aproveitavel_kg:.2f} kg")
-            c.drawString(MARGEM_GERAL + 70*mm, y_cursor, f"Peso Sobras (Sucata): {peso_sucata_kg:.2f} kg")
+            c.setFillColorRGB(0, 0, 0)
+            c.drawString(MARGEM_GERAL, y_cursor, f"Areas Nao Contabilizadas: {area_nao_contabilizada_m2:.4f} m²")
+            c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso (Nao Contabilizado): {peso_nao_contabilizado_kg:.2f} kg")
             y_cursor -= 5*mm
-        # --- FIM: RESUMO DE PESO DAS SOBRAS ---
+        # --- FIM: EXIBIÇÃO DAS ÁREAS NÃO CONTABILIZADAS ---
+
+        # --- INÍCIO: EXIBIÇÃO DO OFFSET ---
+        # --- CORREÇÃO: Lê o peso do offset e demais sucatas do local correto ---
+        offset_weight = resultado.get('sucata_detalhada', {}).get('peso_offset', 0)
+        demais_sucatas_peso = resultado.get('sucata_detalhada', {}).get('peso_demais_sucatas', 0)
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColorRGB(0, 0, 0) # Garante que o texto seja preto
+        c.drawString(MARGEM_GERAL, y_cursor, f"Perda de Processo (cavacos, etc.): {demais_sucatas_peso:.2f} kg")
+        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Perda de Corte (Offset): {offset_weight:.2f} kg")
+        y_cursor -= 8*mm
+        # --- FIM: EXIBIÇÃO DO OFFSET ---
 
         # Desenha cada plano de corte único
         for i, plano_info in enumerate(resultado['planos_unicos']):
