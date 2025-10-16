@@ -389,6 +389,11 @@ class MainWindow(QMainWindow):
     # --- INÍCIO: NOVA FUNÇÃO PARA OFFSET DINÂMICO (COMPARTILHADA) ---
     def _get_dynamic_offset_and_margin(self, espessura, default_offset, default_margin):
         """Retorna o offset e a margem com base na espessura."""
+        # --- CORREÇÃO: A função agora prioriza o input do usuário se for diferente do padrão '8'. ---
+        # Se o usuário inseriu um valor diferente do padrão (8), usa o valor do usuário.
+        if abs(default_offset - 8.0) > 1e-5:
+            return default_offset, default_margin
+
         if 0 < espessura <= 6.35: return 5, 10
         elif 6.35 < espessura <= 15.88: return 10, default_margin
         elif 15.88 < espessura <= 20: return 17, default_margin
@@ -616,10 +621,13 @@ class MainWindow(QMainWindow):
             current_row += 2
 
             for espessura, group in grouped:
-                # --- INÍCIO: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO NA EXPORTAÇÃO EXCEL ---
+                # --- INÍCIO: LÓGICA DE OFFSET E MARGEM DINÂMICOS NA EXPORTAÇÃO EXCEL ---
                 current_offset, current_margin = self._get_dynamic_offset_and_margin(espessura, offset, margin)
-                # --- FIM: APLICAÇÃO DA LÓGICA ---
+                # A margem efetiva é calculada para garantir 10mm da borda até a peça real.
+                effective_margin = 10 - (current_offset / 2)
+                # --- FIM: LÓGICA DE OFFSET E MARGEM ---
                 pecas_para_calcular = []
+
                 for _, row in group.iterrows():
                     # Adiciona peças à lista de cálculo, já com offset
                     # (A lógica para diferentes formas permanece a mesma)
@@ -641,7 +649,7 @@ class MainWindow(QMainWindow):
                 # Ela executa o cálculo em duas fases para maximizar o aproveitamento.
                 self.log_text.append(f"Otimizando espessura {espessura}mm (pode levar um momento)...")
                 QApplication.processEvents()
-                resultado = orquestrar_planos_de_corte(chapa_largura, chapa_altura, pecas_para_calcular, current_offset, current_margin, espessura, status_signal_emitter=None)
+                resultado = orquestrar_planos_de_corte(chapa_largura, chapa_altura, pecas_para_calcular, current_offset, effective_margin, espessura, status_signal_emitter=None)
                 
                 if not resultado: continue
 

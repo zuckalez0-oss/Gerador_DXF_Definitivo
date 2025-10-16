@@ -22,8 +22,13 @@ from calculo_cortes import orquestrar_planos_de_corte, status_signaler
 class CalculationThread(QThread):
     """Thread para executar o cálculo de nesting em segundo plano."""
     # --- INÍCIO: NOVA FUNÇÃO PARA OFFSET DINÂMICO ---
+    # --- CORREÇÃO: A função agora prioriza o input do usuário se for diferente do padrão '8'. ---
     def _get_dynamic_offset_and_margin(self, espessura, default_offset, default_margin):
         """Retorna o offset e a margem com base na espessura."""
+        # Se o usuário inseriu um valor diferente do padrão (8), usa o valor do usuário.
+        if abs(default_offset - 8.0) > 1e-5:
+            return default_offset, default_margin
+
         # Regra 1: 0 a 6.35mm
         if 0 < espessura <= 6.35:
             return 5, 10
@@ -63,10 +68,14 @@ class CalculationThread(QThread):
         try:
             logging.info("Thread de cálculo iniciada.")
             for espessura, group in self.grouped_df:
-                # --- INÍCIO: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO ---
+                # --- INÍCIO: LÓGICA DE OFFSET E MARGEM DINÂMICOS ---
                 current_offset, current_margin = self._get_dynamic_offset_and_margin(espessura, self.offset, self.margin)
-                logging.info(f"Para espessura {espessura}mm, usando Offset: {current_offset}mm e Margem: {current_margin}mm")
-                # --- FIM: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO ---
+                
+                # A margem efetiva é calculada para garantir 10mm da borda até a peça real.
+                # nova_margem = 10 - (offset / 2)
+                effective_margin = 10 - (current_offset / 2)
+                logging.info(f"Para espessura {espessura}mm, usando Offset: {current_offset}mm. Margem efetiva calculada: {effective_margin}mm para garantir 10mm de borda.")
+                # --- FIM: LÓGICA DE OFFSET E MARGEM DINÂMICOS ---
                 pecas_para_calcular = []
                 # --- INÍCIO: LÓGICA PARA INCLUIR CÍRCULOS NO CÁLCULO ---
                 for _, row in group.iterrows():
@@ -120,7 +129,7 @@ class CalculationThread(QThread):
                 
                 logging.debug(f"Iniciando cálculo para espessura {espessura} com {len(pecas_para_calcular)} tipos de peças.")
                 # Chama a função de cálculo pesada
-                resultado = orquestrar_planos_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, current_offset, current_margin, espessura, status_signal_emitter=self.status_update)
+                resultado = orquestrar_planos_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, current_offset, effective_margin, espessura, status_signal_emitter=self.status_update)
                 logging.debug(f"Cálculo para espessura {espessura} concluído. Emitindo resultado.")
                 self.result_ready.emit(espessura, resultado)
         except Exception as e:
