@@ -425,6 +425,105 @@ def gerar_pdf_plano_de_corte(c, chapa_largura, chapa_altura, plano, color_map_qt
     x_cota_total = x0 - dist_cota
     desenhar_cota_vertical(c, y0, y0 + dh, x_cota_total, formatar_numero(chapa_altura))
 
+def _consolidar_pecas(planos_unicos):
+    """
+    Agrega todas as peças de todos os planos de corte para uma espessura.
+    Retorna um dicionário com peças consolidadas.
+    """
+    pecas_consolidadas = {}
+    for i, plano_info in enumerate(planos_unicos):
+        plano_id = f"P{i + 1}"
+        repeticoes_plano = plano_info['repeticoes']
+        
+        for peca_resumo in plano_info['resumo_pecas']:
+            tipo_key = peca_resumo['tipo']
+            qtd_no_plano = peca_resumo['qtd']
+            
+            if tipo_key not in pecas_consolidadas:
+                # Extrai dimensões do tipo_key (ex: "R 152x2500")
+                parts = tipo_key.split(' ')
+                comprimento, largura = 0, 0
+                if len(parts) > 1:
+                    dim_str = parts[-1]
+                    if 'x' in dim_str:
+                        try:
+                            dim_parts = dim_str.split('x')
+                            comprimento = float(dim_parts[0])
+                            largura = float(dim_parts[1])
+                        except (ValueError, IndexError):
+                            pass # Mantém 0 se a conversão falhar
+
+                pecas_consolidadas[tipo_key] = {
+                    'id': tipo_key,
+                    'total_qtd': 0,
+                    'comprimento': comprimento,
+                    'largura': largura,
+                    'planos': set()
+                }
+            
+            pecas_consolidadas[tipo_key]['total_qtd'] += qtd_no_plano * repeticoes_plano
+            pecas_consolidadas[tipo_key]['planos'].add(plano_id)
+
+    # Converte o set de planos para uma string ordenada
+    for key in pecas_consolidadas:
+        pecas_consolidadas[key]['planos'] = ", ".join(sorted(list(pecas_consolidadas[key]['planos'])))
+
+    return list(pecas_consolidadas.values())
+
+def _desenhar_tabela_pecas(c, y_start, pecas_consolidadas):
+    """Desenha a tabela de listagem total de peças."""
+    if not pecas_consolidadas:
+        return y_start
+
+    c.setFont("Helvetica-Bold", 11)
+    c.drawString(MARGEM_GERAL, y_start, "Listagem Total de Peças")
+    y_cursor = y_start - 5*mm
+
+    headers = ["ID da Peça", "Qtd. Total", "Comprimento", "Largura", "Plano(s)"]
+    col_widths = [
+        (PAGE_WIDTH - 2 * MARGEM_GERAL) * 0.40, 
+        (PAGE_WIDTH - 2 * MARGEM_GERAL) * 0.15, 
+        (PAGE_WIDTH - 2 * MARGEM_GERAL) * 0.15, 
+        (PAGE_WIDTH - 2 * MARGEM_GERAL) * 0.15, 
+        (PAGE_WIDTH - 2 * MARGEM_GERAL) * 0.15
+    ]
+    
+    # Desenha cabeçalho
+    c.setFont("Helvetica-Bold", 9)
+    x_cursor = MARGEM_GERAL
+    for i, header in enumerate(headers):
+        c.drawString(x_cursor + 2*mm, y_cursor - 3*mm, header)
+        x_cursor += col_widths[i]
+    y_cursor -= 5*mm
+    c.line(MARGEM_GERAL, y_cursor, PAGE_WIDTH - MARGEM_GERAL, y_cursor)
+    y_cursor -= 4*mm
+
+    # Desenha linhas
+    c.setFont("Helvetica", 8)
+    for peca in pecas_consolidadas:
+        if y_cursor < MARGEM_GERAL + 10*mm: # Verifica se precisa de nova página
+            c.showPage()
+            y_cursor = PAGE_HEIGHT - MARGEM_GERAL
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(MARGEM_GERAL, y_cursor, "(Continuação da Lista de Peças)")
+            y_cursor -= 8*mm
+            c.setFont("Helvetica", 8)
+
+        row_data = [
+            peca['id'],
+            str(peca['total_qtd']),
+            formatar_numero(peca['comprimento']),
+            formatar_numero(peca['largura']),
+            peca['planos']
+        ]
+        x_cursor = MARGEM_GERAL
+        for i, data in enumerate(row_data):
+            c.drawString(x_cursor + 2*mm, y_cursor, str(data))
+            x_cursor += col_widths[i]
+        y_cursor -= 4*mm
+
+    return y_cursor
+
 def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, chapa_altura, plano_idx, color_map):
     """
     Função auxiliar para desenhar um único plano de corte com seus detalhes em uma área específica da página.
@@ -529,25 +628,24 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
             c.rect(x_origem_desenho + sobra['x'] * escala, sobra_y_inferior, sobra['largura'] * escala, sobra['altura'] * escala, stroke=1, fill=1)
 
 
-    # Área da lista de peças (à direita)
     x_lista = (PAGE_WIDTH / 2) + (MARGEM_GERAL / 2)
     y_lista = y_cursor
-    # --- CORREÇÃO: Garante que o texto seja preto ---
-    c.setFillColorRGB(0, 0, 0)
+    c.setFillColorRGB(0, 0, 0) # Garante que o texto seja preto
+
+    # --- INÍCIO: REINTRODUÇÃO DA LISTA DE PEÇAS NO PLANO ---
     c.setFont("Helvetica-Bold", 9)
     c.drawString(x_lista, y_lista, "Peças neste plano:")
     y_lista -= 4*mm
     c.setFont("Helvetica", 8)
     for item in plano_info['resumo_pecas']:
-        # Verifica se precisa pular para a próxima linha na lista
-        if y_lista < (y_cursor - area_desenho_h + 5*mm):
+        if y_lista < (y_cursor - area_desenho_h + 20*mm): # Deixa espaço para sobras
             c.drawString(x_lista, y_lista, "...")
             break
         texto_peca = f"- {item['qtd']}x de {item['tipo']}"
         c.drawString(x_lista, y_lista, texto_peca)
         y_lista -= 3.5*mm
+    # --- FIM: REINTRODUÇÃO DA LISTA DE PEÇAS NO PLANO ---
 
-    # --- INÍCIO: ADIÇÃO DO RESUMO DE SOBRAS NO PDF ---
     y_lista -= 5*mm # Espaço antes das sobras
     sobras_aproveitaveis = [s for s in sobras if s.get('tipo_sobra') == 'aproveitavel']
     sobras_sucata = [s for s in sobras if s.get('tipo_sobra') != 'aproveitavel']
@@ -593,6 +691,9 @@ def gerar_relatorio_completo_pdf(c, resultados_completos, chapa_largura, chapa_a
     y_cursor = PAGE_HEIGHT - MARGEM_GERAL - 20*mm
 
     for espessura, resultado in resultados_completos.items():
+        # Consolida as peças para esta espessura
+        pecas_consolidadas = _consolidar_pecas(resultado['planos_unicos'])
+
         # Verifica se há espaço para o cabeçalho da espessura
         if y_cursor < MARGEM_GERAL + 40*mm:
             c.showPage()
@@ -675,6 +776,15 @@ def gerar_relatorio_completo_pdf(c, resultados_completos, chapa_largura, chapa_a
                 c.setStrokeColorRGB(0.8, 0.8, 0.8)
                 c.line(MARGEM_GERAL, y_cursor, PAGE_WIDTH - MARGEM_GERAL, y_cursor)
                 y_cursor -= 5*mm
+
+        # --- INÍCIO: DESENHO DA TABELA CONSOLIDADA DE PEÇAS ---
+        y_cursor -= 5*mm # Espaço antes da tabela
+        if y_cursor < MARGEM_GERAL + 50*mm: # Espaço mínimo para a tabela
+            c.showPage()
+            y_cursor = PAGE_HEIGHT - MARGEM_GERAL
+        
+        y_cursor = _desenhar_tabela_pecas(c, y_cursor, pecas_consolidadas)
+        # --- FIM: DESENHO DA TABELA CONSOLIDADA DE PEÇAS ---
 
         # Espaço antes da próxima espessura
         y_cursor -= 10*mm
