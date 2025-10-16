@@ -498,12 +498,13 @@ def _desenhar_plano_unico_com_detalhes(c, y_start, plano_info, chapa_largura, ch
                 c.drawPath(path1, stroke=1, fill=1)
 
                 # --- CORREÇÃO DA LÓGICA DE DESENHO DO SEGUNDO TRAPÉZIO ---
-                path2 = c.beginPath()
-                path2.moveTo(x + large_base_s, y) # Ponto inf esq (coincide com inf dir do 1º)
-                path2.lineTo(x + w, y) # Ponto inf dir
-                path2.lineTo(x + w - offset_x_s, y + height_s) # Ponto sup dir
-                path2.lineTo(x + large_base_s, y + height_s) # Ponto sup esq (coincide com sup dir do 1º)
-                path2.close()
+                # A lógica anterior estava correta, mas a visualização em nesting_dialog estava errada.
+                # Mantendo a lógica correta aqui.
+                path2 = c.beginPath(); path2.moveTo(x + large_base_s, y); path2.lineTo(x + w, y); path2.lineTo(x + w - offset_x_s, y + height_s); path2.lineTo(x + large_base_s, y + height_s); path2.close()
+                # path2.moveTo(x + large_base_s, y) # Ponto inf esq (coincide com inf dir do 1º)
+                # path2.lineTo(x + w, y) # Ponto inf dir
+                # path2.lineTo(x + w - offset_x_s, y + height_s) # Ponto sup dir
+                # path2.lineTo(x + large_base_s, y + height_s) # Ponto sup esq (coincide com sup dir do 1º)
                 c.drawPath(path2, stroke=1, fill=1)
         elif peca.get('forma') == 'dxf_shape':
             # Para o PDF, o Y do offset precisa ser o topo do bounding box da peça alocada
@@ -621,51 +622,39 @@ def gerar_relatorio_completo_pdf(c, resultados_completos, chapa_largura, chapa_a
         c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso Total das Chapas: {peso_total_chapas_kg:.2f} kg")
         # --- FIM: CÁLCULO E EXIBIÇÃO DO PESO TOTAL DAS CHAPAS ---
         y_cursor -= 8*mm
-
-        # --- INÍCIO: RESUMO DE PESO DAS SOBRAS ---
-        from collections import Counter
-        todas_as_sobras = []
-        for plano in resultado.get('planos_unicos', []):
-            todas_as_sobras.extend(plano.get('sobras', []) * plano['repeticoes'])
         
-        sobras_aproveitaveis = [s for s in todas_as_sobras if s.get('tipo_sobra') == 'aproveitavel']
-        sobras_sucata = [s for s in todas_as_sobras if s.get('tipo_sobra') != 'aproveitavel']
+        # --- INÍCIO: RESUMO DE PESO DAS SOBRAS (LÓGICA ATUALIZADA) ---
+        # Usa os valores pré-calculados do dicionário de resultados para consistência.
+        sucata_detalhada = resultado.get('sucata_detalhada', {})
+        peso_aproveitavel_kg = sum(item['peso'] * item['quantidade'] for item in sucata_detalhada.get('sobras_aproveitaveis', []))
+        peso_sucata_kg = sum(item['peso'] * item['quantidade'] for item in sucata_detalhada.get('sucatas_dimensionadas', []))
         
-        area_aproveitavel_mm2 = sum(s['largura'] * s['altura'] for s in sobras_aproveitaveis)
-        area_sucata_mm2 = sum(s['largura'] * s['altura'] for s in sobras_sucata)
+        # Pega as novas porcentagens do resultado
+        perc_aproveitavel = resultado.get('percentual_sobras_aproveitaveis', 0)
+        perc_perda_total = resultado.get('percentual_perda_total_sucata', 0)
+        peso_perda_total = resultado.get('peso_perda_total_sucata', 0)
         
-        peso_aproveitavel_kg = (area_aproveitavel_mm2 / 1_000_000) * espessura * 7.85
-        peso_sucata_kg = (area_sucata_mm2 / 1_000_000) * espessura * 7.85
-        
+        # --- INÍCIO: REORGANIZAÇÃO DA SEÇÃO DE PERDAS ---
         c.setFont("Helvetica-Bold", 9)
-        c.drawString(MARGEM_GERAL, y_cursor, f"Peso Sobras Aproveitáveis: {peso_aproveitavel_kg:.2f} kg")
-        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso Sobras (Sucata): {peso_sucata_kg:.2f} kg")
-        y_cursor -= 5*mm
+        c.drawString(MARGEM_GERAL, y_cursor, f"Sobras Aproveitáveis: {peso_aproveitavel_kg:.2f} kg ({perc_aproveitavel:.2f}%)")
+        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Perda Total (Sucata):Não Cobrado: {peso_perda_total:.2f} kg ({perc_perda_total:.2f}%)")
+        y_cursor -= 4*mm
         # --- FIM: RESUMO DE PESO DAS SOBRAS ---
 
         # --- INÍCIO: EXIBIÇÃO DAS ÁREAS NÃO CONTABILIZADAS (PERDA INTERSTICIAL) ---
-        perda_intersticial = resultado.get('perda_intersticial', 0)
-        if perda_intersticial > 0:
-            area_nao_contabilizada_m2 = perda_intersticial / 1_000_000
-            peso_nao_contabilizado_kg = area_nao_contabilizada_m2 * espessura * 7.85
-            
-            c.setFont("Helvetica-Bold", 9)
-            c.setFillColorRGB(0, 0, 0)
-            c.drawString(MARGEM_GERAL, y_cursor, f"Areas Nao Contabilizadas: {area_nao_contabilizada_m2:.4f} m²")
-            c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Peso (Nao Contabilizado): {peso_nao_contabilizado_kg:.2f} kg")
-            y_cursor -= 5*mm
+        # Este bloco foi removido pois a lógica de "demais sucatas" já o cobre.
         # --- FIM: EXIBIÇÃO DAS ÁREAS NÃO CONTABILIZADAS ---
 
-        # --- INÍCIO: EXIBIÇÃO DO OFFSET ---
         # --- CORREÇÃO: Lê o peso do offset e demais sucatas do local correto ---
         offset_weight = resultado.get('sucata_detalhada', {}).get('peso_offset', 0)
         demais_sucatas_peso = resultado.get('sucata_detalhada', {}).get('peso_demais_sucatas', 0)
-        c.setFont("Helvetica-Bold", 9)
+        c.setFont("Helvetica", 9)
         c.setFillColorRGB(0, 0, 0) # Garante que o texto seja preto
-        c.drawString(MARGEM_GERAL, y_cursor, f"Perda de Processo (cavacos, etc.): {demais_sucatas_peso:.2f} kg")
         c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Perda de Corte (Offset): {offset_weight:.2f} kg")
+        y_cursor -= 4*mm
+        c.drawRightString(PAGE_WIDTH - MARGEM_GERAL, y_cursor, f"Perda de Processo (cavacos, etc.): {demais_sucatas_peso:.2f} kg")
         y_cursor -= 8*mm
-        # --- FIM: EXIBIÇÃO DO OFFSET ---
+        # --- FIM: REORGANIZAÇÃO DA SEÇÃO DE PERDAS ---
 
         # Desenha cada plano de corte único
         for i, plano_info in enumerate(resultado['planos_unicos']):

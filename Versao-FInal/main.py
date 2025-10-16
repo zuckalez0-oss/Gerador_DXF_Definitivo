@@ -386,6 +386,17 @@ class MainWindow(QMainWindow):
     # O RESTANTE DAS FUNÇÕES (MÉTODOS) PERMANECE O MESMO
     # ... (Cole aqui todos os seus métodos de 'start_new_project' até 'delete_furo_temp')
     # =====================================================================
+    # --- INÍCIO: NOVA FUNÇÃO PARA OFFSET DINÂMICO (COMPARTILHADA) ---
+    def _get_dynamic_offset_and_margin(self, espessura, default_offset, default_margin):
+        """Retorna o offset e a margem com base na espessura."""
+        if 0 < espessura <= 6.35: return 5, 10
+        elif 6.35 < espessura <= 15.88: return 10, default_margin
+        elif 15.88 < espessura <= 20: return 17, default_margin
+        elif abs(espessura - 22.22) < 1e-5: return 20, default_margin
+        elif 25.4 <= espessura <= 38: return 25, default_margin
+        return default_offset, default_margin
+    # --- FIM: NOVA FUNÇÃO PARA OFFSET DINÂMICO ---
+
     def start_new_project(self):
         parent_dir = QFileDialog.getExistingDirectory(self, "Selecione a Pasta Principal para o Novo Projeto")
         if not parent_dir: return
@@ -605,20 +616,23 @@ class MainWindow(QMainWindow):
             current_row += 2
 
             for espessura, group in grouped:
+                # --- INÍCIO: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO NA EXPORTAÇÃO EXCEL ---
+                current_offset, current_margin = self._get_dynamic_offset_and_margin(espessura, offset, margin)
+                # --- FIM: APLICAÇÃO DA LÓGICA ---
                 pecas_para_calcular = []
                 for _, row in group.iterrows():
                     # Adiciona peças à lista de cálculo, já com offset
                     # (A lógica para diferentes formas permanece a mesma)
                     if row['forma'] == 'rectangle' and row['largura'] > 0 and row['altura'] > 0:
-                        pecas_para_calcular.append({'forma': 'rectangle', 'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'quantidade': int(row['qtd'])})
+                        pecas_para_calcular.append({'forma': 'rectangle', 'largura': row['largura'] + current_offset, 'altura': row['altura'] + current_offset, 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'circle' and row['diametro'] > 0:
-                        pecas_para_calcular.append({'forma': 'circle', 'largura': row['diametro'] + offset, 'altura': row['diametro'] + offset, 'diametro': row['diametro'], 'quantidade': int(row['qtd'])})
+                        pecas_para_calcular.append({'forma': 'circle', 'largura': row['diametro'] + current_offset, 'altura': row['diametro'] + current_offset, 'diametro': row['diametro'], 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'right_triangle' and row['rt_base'] > 0 and row['rt_height'] > 0:
-                        pecas_para_calcular.append({'forma': 'right_triangle', 'largura': row['rt_base'] + offset, 'altura': row['rt_height'] + offset, 'quantidade': int(row['qtd'])})
+                        pecas_para_calcular.append({'forma': 'right_triangle', 'largura': row['rt_base'] + current_offset, 'altura': row['rt_height'] + current_offset, 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'trapezoid' and row['trapezoid_large_base'] > 0 and row['trapezoid_height'] > 0:
-                        pecas_para_calcular.append({'forma': 'trapezoid', 'largura': row['trapezoid_large_base'] + offset, 'altura': row['trapezoid_height'] + offset, 'small_base': row['trapezoid_small_base'] + offset, 'quantidade': int(row['qtd'])})
+                        pecas_para_calcular.append({'forma': 'trapezoid', 'largura': row['trapezoid_large_base'] + current_offset, 'altura': row['trapezoid_height'] + current_offset, 'small_base': row['trapezoid_small_base'] + current_offset, 'quantidade': int(row['qtd'])})
                     elif row['forma'] == 'dxf_shape' and row['largura'] > 0 and row['altura'] > 0:
-                        pecas_para_calcular.append({'forma': 'dxf_shape', 'largura': row['largura'] + offset, 'altura': row['altura'] + offset, 'dxf_path': row['dxf_path'], 'quantidade': int(row['qtd'])})
+                        pecas_para_calcular.append({'forma': 'dxf_shape', 'largura': row['largura'] + current_offset, 'altura': row['altura'] + current_offset, 'dxf_path': row['dxf_path'], 'quantidade': int(row['qtd'])})
 
                 if not pecas_para_calcular: continue
 
@@ -627,7 +641,7 @@ class MainWindow(QMainWindow):
                 # Ela executa o cálculo em duas fases para maximizar o aproveitamento.
                 self.log_text.append(f"Otimizando espessura {espessura}mm (pode levar um momento)...")
                 QApplication.processEvents()
-                resultado = orquestrar_planos_de_corte(chapa_largura, chapa_altura, pecas_para_calcular, offset, margin, espessura, status_signal_emitter=None)
+                resultado = orquestrar_planos_de_corte(chapa_largura, chapa_altura, pecas_para_calcular, current_offset, current_margin, espessura, status_signal_emitter=None)
                 
                 if not resultado: continue
 
@@ -698,6 +712,12 @@ class MainWindow(QMainWindow):
                     # 4. Demais Sucatas
                     ws.cell(row=current_row, column=1, value="Demais Sucatas (cavacos, etc):").font = bold_font
                     ws.cell(row=current_row, column=2, value=f"{sucata_info['peso_demais_sucatas']:.2f} kg")
+                    current_row += 2
+
+                    # 5. Resumo de Perda Total
+                    ws.cell(row=current_row, column=1, value="Resumo da Perda Total (Sucata + Processo + Offset):").font = bold_font
+                    ws.cell(row=current_row, column=2, value=f"{resultado.get('peso_perda_total_sucata', 0):.2f} kg")
+                    ws.cell(row=current_row, column=3, value=f"({resultado.get('percentual_perda_total_sucata', 0):.2f} % do total)").font = Font(italic=True)
                     current_row += 2
                 # --- FIM: NOVA LÓGICA ---
 
@@ -925,7 +945,7 @@ class MainWindow(QMainWindow):
             if largura is not None and altura is not None:
                 nome_arquivo = os.path.splitext(os.path.basename(file_path))[0]
                 
-                new_piece = {
+                new_piece = { # type: ignore
                     'nome_arquivo': nome_arquivo,
                     'forma': 'rectangle', # Sempre será retângulo
                     'forma': 'dxf_shape',

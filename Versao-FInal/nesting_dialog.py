@@ -21,6 +21,27 @@ from calculo_cortes import orquestrar_planos_de_corte, status_signaler
 # --- INÍCIO: CLASSE DA THREAD DE CÁLCULO ---
 class CalculationThread(QThread):
     """Thread para executar o cálculo de nesting em segundo plano."""
+    # --- INÍCIO: NOVA FUNÇÃO PARA OFFSET DINÂMICO ---
+    def _get_dynamic_offset_and_margin(self, espessura, default_offset, default_margin):
+        """Retorna o offset e a margem com base na espessura."""
+        # Regra 1: 0 a 6.35mm
+        if 0 < espessura <= 6.35:
+            return 5, 10
+        # Regra 2: 6.35 a 15.88mm
+        elif 6.35 < espessura <= 15.88:
+            return 10, default_margin
+        # Regra 3: 15.88 a 20mm
+        elif 15.88 < espessura <= 20:
+            return 17, default_margin
+        # Regra 4: Exatamente 22.22mm
+        elif abs(espessura - 22.22) < 1e-5:
+            return 20, default_margin
+        # Regra 5: 25.4 a 38mm
+        elif 25.4 <= espessura <= 38:
+            return 25, default_margin
+        # Fallback para os valores da UI se nenhuma regra for atendida
+        return default_offset, default_margin
+    # --- FIM: NOVA FUNÇÃO PARA OFFSET DINÂMICO ---
     # Sinal que emite o resultado para uma espessura: (espessura, resultado_dict)
     result_ready = pyqtSignal(float, dict)
     # Sinal emitido quando todos os cálculos terminam
@@ -42,22 +63,26 @@ class CalculationThread(QThread):
         try:
             logging.info("Thread de cálculo iniciada.")
             for espessura, group in self.grouped_df:
+                # --- INÍCIO: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO ---
+                current_offset, current_margin = self._get_dynamic_offset_and_margin(espessura, self.offset, self.margin)
+                logging.info(f"Para espessura {espessura}mm, usando Offset: {current_offset}mm e Margem: {current_margin}mm")
+                # --- FIM: APLICAÇÃO DA LÓGICA DE OFFSET DINÂMICO ---
                 pecas_para_calcular = []
                 # --- INÍCIO: LÓGICA PARA INCLUIR CÍRCULOS NO CÁLCULO ---
                 for _, row in group.iterrows():
                     if row['forma'] == 'rectangle' and row['largura'] > 0 and row['altura'] > 0:
                         pecas_para_calcular.append({
                             'forma': 'rectangle',
-                            'largura': row['largura'] + self.offset,
-                            'altura': row['altura'] + self.offset,
+                            'largura': row['largura'] + current_offset,
+                            'altura': row['altura'] + current_offset,
                             'quantidade': int(row['qtd']),
                             'furos': row.get('furos', [])
                         })
                     elif row['forma'] == 'circle' and row['diametro'] > 0:
                         pecas_para_calcular.append({
                             'forma': 'circle',
-                            'largura': row['diametro'] + self.offset, # Bounding box
-                            'altura': row['diametro'] + self.offset, # Bounding box
+                            'largura': row['diametro'] + current_offset, # Bounding box
+                            'altura': row['diametro'] + current_offset, # Bounding box
                             'diametro': row['diametro'], # Diâmetro original
                             'quantidade': int(row['qtd']),
                             'furos': row.get('furos', [])
@@ -65,25 +90,25 @@ class CalculationThread(QThread):
                     elif row['forma'] == 'right_triangle' and row['rt_base'] > 0 and row['rt_height'] > 0:
                         pecas_para_calcular.append({
                             'forma': 'right_triangle',
-                            'largura': row['rt_base'] + self.offset, # Bounding box
-                            'altura': row['rt_height'] + self.offset, # Bounding box
+                            'largura': row['rt_base'] + current_offset, # Bounding box
+                            'altura': row['rt_height'] + current_offset, # Bounding box
                             'quantidade': int(row['qtd']),
                             'furos': [] # Furos em triângulos não implementado
                         })
                     elif row['forma'] == 'trapezoid' and row['trapezoid_large_base'] > 0 and row['trapezoid_height'] > 0:
                         pecas_para_calcular.append({
                             'forma': 'trapezoid',
-                            'largura': row['trapezoid_large_base'] + self.offset, # Bounding box
-                            'altura': row['trapezoid_height'] + self.offset, # Bounding box
-                            'small_base': row['trapezoid_small_base'] + self.offset,
+                            'largura': row['trapezoid_large_base'] + current_offset, # Bounding box
+                            'altura': row['trapezoid_height'] + current_offset, # Bounding box
+                            'small_base': row['trapezoid_small_base'] + current_offset,
                             'quantidade': int(row['qtd']),
                             'furos': row.get('furos', [])
                         })
                     elif row['forma'] == 'dxf_shape' and row['largura'] > 0 and row['altura'] > 0:
                         pecas_para_calcular.append({
                             'forma': 'dxf_shape',
-                            'largura': row['largura'] + self.offset,
-                            'altura': row['altura'] + self.offset,
+                            'largura': row['largura'] + current_offset,
+                            'altura': row['altura'] + current_offset,
                             'dxf_path': row['dxf_path'],
                             'quantidade': int(row['qtd']),
                             'furos': row.get('furos', [])
@@ -95,7 +120,7 @@ class CalculationThread(QThread):
                 
                 logging.debug(f"Iniciando cálculo para espessura {espessura} com {len(pecas_para_calcular)} tipos de peças.")
                 # Chama a função de cálculo pesada
-                resultado = orquestrar_planos_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, self.offset, self.margin, espessura, status_signal_emitter=self.status_update)
+                resultado = orquestrar_planos_de_corte(self.chapa_largura, self.chapa_altura, pecas_para_calcular, current_offset, current_margin, espessura, status_signal_emitter=self.status_update)
                 logging.debug(f"Cálculo para espessura {espessura} concluído. Emitindo resultado.")
                 self.result_ready.emit(espessura, resultado)
         except Exception as e:
@@ -237,7 +262,7 @@ class CuttingPlanWidget(QWidget):
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             # --- FIM: DESENHO CONDICIONAL ---
 
-            # 3. Desenha os furos dentro da peça
+            # 3. Desenha os furos dentro da peça (se não for DXF, pois já podem estar no arquivo)
             furos = peca.get('furos', [])
             if furos:
                 painter.setBrush(QBrush(QColor("#FFFFFF"))) # Furos brancos
@@ -420,12 +445,15 @@ class NestingDialog(QDialog):
         action_layout = QHBoxLayout()
         self.calculate_btn = QPushButton("Calcular")
         self.calculate_btn.clicked.connect(self.run_calculation)
-        self.export_report_btn = QPushButton("Exportar Relatório PDF")
-        self.export_dxf_btn = QPushButton("Exportar Planos para DXF") # Novo botão
+        self.export_report_btn = QPushButton("Exportar Relatório (PDF)")
+        self.export_dxf_btn = QPushButton("Exportar Planos (DXF)") # Novo botão
         self.export_report_btn.clicked.connect(self.export_full_report_to_pdf)
         self.export_report_btn.setEnabled(False) # Desabilitado até o cálculo ser feito
+        self.export_dxf_btn.setEnabled(False) # Desabilitado até o cálculo ser feito
+        self.export_dxf_btn.clicked.connect(self.export_layouts_to_dxf)
         action_layout.addWidget(self.calculate_btn)
         action_layout.addWidget(self.export_report_btn)
+        action_layout.addWidget(self.export_dxf_btn)
         self.main_layout.addLayout(action_layout)
 
         # --- Área de Resultados ---
