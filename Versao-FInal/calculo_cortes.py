@@ -206,11 +206,10 @@ def calcular_plano_de_corte_em_bins(pecas, offset, espessura, bins, peso_especif
 
     for dim, lista_triangulos in mapa_triangulos.items():
         total_qtd = sum(t['quantidade'] for t in lista_triangulos)
-        num_pares, num_sozinhos = divmod(total_qtd, 2)
-        if num_pares > 0:
-            pecas_processadas.append({'forma': 'paired_triangle', 'largura': dim[0], 'altura': dim[1], 'quantidade': num_pares})
-        if num_sozinhos > 0:
-            pecas_processadas.append({'forma': 'right_triangle', 'largura': dim[0], 'altura': dim[1], 'quantidade': num_sozinhos})
+        # --- CORREÇÃO: Remove a lógica de pareamento de triângulos. ---
+        # Tratar cada triângulo como um retângulo individual (seu bounding box)
+        # permite que o algoritmo de nesting os posicione livremente, o que é mais robusto.
+        pecas_processadas.append({'forma': 'right_triangle', 'largura': dim[0], 'altura': dim[1], 'quantidade': total_qtd})
 
     mapa_trapezios = defaultdict(list)
     for t in trapezios:
@@ -300,8 +299,7 @@ def calcular_plano_de_corte_em_bins(pecas, offset, espessura, bins, peso_especif
                             forma = peca_info.get('forma', 'rectangle')
                             if forma == 'rectangle': tipo_key = f"R {peca_info['largura_sem_offset']:.0f}x{peca_info['altura_sem_offset']:.0f}"
                             elif forma == 'circle': tipo_key = f"C Ø{peca_info['diametro']:.0f}"
-                            elif forma == 'paired_triangle': tipo_key = f"2T {peca_info['largura_sem_offset']:.0f}x{peca_info['altura_sem_offset']:.0f}"
-                            elif forma == 'paired_trapezoid':
+                            elif forma == 'paired_trapezoid': # A lógica de trapézio pode ser mantida por enquanto
                                 dims = peca_info['orig_dims']
                                 tipo_key = f"2Z {dims['large_base']-offset:.0f}/{dims['small_base']-offset:.0f}x{dims['height']-offset:.0f}"
                             elif forma == 'dxf_shape': tipo_key = f"DXF: {os.path.basename(peca_info['dxf_path'])}"
@@ -347,10 +345,21 @@ def calcular_plano_de_corte_em_bins(pecas, offset, espessura, bins, peso_especif
                 for plano in planos_agrupados.values():
                     for r in plano['plano']:
                         peca_info = id_peca_map[r['rid']]
+                        # --- OTIMIZAÇÃO: Cálculo de área real por forma ---
                         if peca_info.get('forma') == 'circle':
                             area_real_pecas += (math.pi * (peca_info['diametro'] / 2)**2) * plano['repeticoes']
+                        elif peca_info.get('forma') == 'right_triangle':
+                            # A área de um triângulo é (base*altura)/2.
+                            area_real_pecas += (peca_info['largura_sem_offset'] * peca_info['altura_sem_offset'] * 0.5) * plano['repeticoes']
+                        elif peca_info.get('forma') in ['trapezoid', 'paired_trapezoid']:
+                            # A área de um trapézio é ((B+b)*h)/2. Um par tem o dobro.
+                            fator = 0.5 if peca_info.get('forma') == 'trapezoid' else 1.0
+                            dims = peca_info['orig_dims']
+                            area_real_pecas += ((dims['large_base'] + dims['small_base']) * dims['height'] * fator) * plano['repeticoes']
                         else:
+                            # Para retângulos e DXFs (usa bounding box como aproximação)
                             area_real_pecas += (peca_info['largura_sem_offset'] * peca_info['altura_sem_offset']) * plano['repeticoes']
+                        # --- FIM DA OTIMIZAÇÃO ---
                         
                         # Calcula a área do bounding box para a lógica de sucata
                         area_bounding_box_pecas += (peca_info['largura_sem_offset'] * peca_info['altura_sem_offset']) * plano['repeticoes']
