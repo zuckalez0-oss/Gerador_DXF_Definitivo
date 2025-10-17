@@ -562,7 +562,7 @@ class MainWindow(QMainWindow):
             return
         combined_df = pd.concat(dfs_to_concat, ignore_index=True)
 
-        default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V4_NOVA_{project_number}.xlsx")
+        default_filename = os.path.join(self.project_directory, f"CUSTO_PLASMA-LASER_V5_Definitiva-R1_{project_number}.xlsx")
         save_path, _ = QFileDialog.getSaveFileName(self, "Salvar Resumo do Projeto", default_filename, "Excel Files (*.xlsx)")
         if not save_path:
             return
@@ -575,7 +575,7 @@ class MainWindow(QMainWindow):
         QApplication.processEvents()
 
         try:
-            template_path = 'CUSTO_PLASMA-LASER_V4_NOVA.xlsx'
+            template_path = 'CUSTO_PLASMA-LASER_V5_Definitiva-R1.xlsx'
             if not os.path.exists(template_path):
                 QMessageBox.critical(self, "Template Não Encontrado", f"O arquivo modelo '{template_path}' não foi encontrado.")
                 return
@@ -585,11 +585,12 @@ class MainWindow(QMainWindow):
             self.log_text.append("Preenchendo lista de peças...")
             QApplication.processEvents()
 
-            start_row = 1
-            while ws.cell(row=start_row, column=1).value is not None: start_row += 1
+            # --- CORREÇÃO: Define a linha inicial de inserção das peças como fixa ---
+            start_row = 4 # A lista de peças sempre começará a ser preenchida na linha 4
 
             for index, (_, row_data) in enumerate(combined_df.iterrows()):
                 current_row = start_row + index
+                # --- CORREÇÃO: Inicia a inserção a partir da coluna A (índice 1) ---
                 ws.cell(row=current_row, column=1, value=project_number)
                 ws.cell(row=current_row, column=2, value=row_data.get('nome_arquivo', ''))
                 ws.cell(row=current_row, column=3, value=row_data.get('qtd', 0))
@@ -616,7 +617,8 @@ class MainWindow(QMainWindow):
             valid_nesting_df['espessura'] = valid_nesting_df['espessura'].astype(float)
             grouped = valid_nesting_df.groupby('espessura')
             
-            current_row = 209
+            # --- CORREÇÃO: Define a linha inicial do relatório de aproveitamento como fixa ---
+            current_row = 212 # O relatório sempre começará na linha 212
             ws.cell(row=current_row, column=1, value="RELATÓRIO DE APROVEITAMENTO DE CHAPA").font = Font(bold=True, size=14)
             current_row += 2
 

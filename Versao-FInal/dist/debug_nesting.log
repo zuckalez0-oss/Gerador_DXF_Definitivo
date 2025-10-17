@@ -1,0 +1,33 @@
+2025-10-17 16:13:54,259 - INFO - Thread de cálculo iniciada.
+2025-10-17 16:13:54,259 - INFO - Para espessura 2.0mm, usando Offset: 5.0mm. Margem efetiva calculada: 7.5mm para garantir 10mm de borda.
+2025-10-17 16:13:54,261 - DEBUG - Iniciando cálculo para espessura 2.0 com 1 tipos de peças.
+2025-10-17 16:13:54,261 - INFO - --- INICIANDO ORQUESTRAÇÃO DE NESTING (ESTRATÉGIA OTIMIZADA) PARA ESPESSURA 2.0mm ---
+2025-10-17 16:13:54,261 - INFO - Ordenando 1 tipos de peças por área para otimização.
+2025-10-17 16:13:54,261 - INFO - Iniciando cálculo de corte para 1 tipos de peças em 200 bins disponíveis.
+2025-10-17 16:13:54,263 - INFO - --- TENTATIVA COM 1 CHAPAS ---
+2025-10-17 16:13:54,263 - INFO - SUCESSO! Algoritmo 'MaxRectsBssf' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,263 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,263 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 3 sobras válidas.
+2025-10-17 16:13:54,263 - INFO - SUCESSO! Algoritmo 'MaxRectsBaf' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,263 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,263 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 3 sobras válidas.
+2025-10-17 16:13:54,263 - INFO - SUCESSO! Algoritmo 'MaxRectsBlsf' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,263 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,263 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-17 16:13:54,275 - INFO - SUCESSO! Algoritmo 'SkylineBl' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,275 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,275 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-17 16:13:54,275 - INFO - SUCESSO! Algoritmo 'SkylineMwf' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,275 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,275 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 3 sobras válidas.
+2025-10-17 16:13:54,275 - INFO - SUCESSO! Algoritmo 'SkylineBlWm' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,275 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,275 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-17 16:13:54,290 - INFO - SUCESSO! Algoritmo 'SkylineMwfl' conseguiu alocar todas as peças em 1 chapas.
+2025-10-17 16:13:54,290 - DEBUG - Iniciando 'encontrar_sobras' com algoritmo de varredura (Scanline).
+2025-10-17 16:13:54,290 - DEBUG - Finalizado 'encontrar_sobras' (Scanline). Encontradas 2 sobras válidas.
+2025-10-17 16:13:54,290 - INFO - Encontrado o número mínimo de chapas: 1. Selecionando a melhor solução.
+2025-10-17 16:13:54,290 - INFO - Cálculo finalizado. Melhor resultado: 1 chapas, 49.09% de aproveitamento.
+2025-10-17 16:13:54,290 - INFO - --- ORQUESTRAÇÃO OTIMIZADA FINALIZADA ---
+2025-10-17 16:13:54,290 - DEBUG - Cálculo para espessura 2.0 concluído. Emitindo resultado.
+2025-10-17 16:13:54,290 - INFO - Thread de cálculo finalizada.

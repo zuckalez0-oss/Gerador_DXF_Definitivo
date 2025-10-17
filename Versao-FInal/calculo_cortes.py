@@ -340,9 +340,24 @@ def calcular_plano_de_corte_em_bins(pecas, offset, espessura, bins, peso_especif
                 
                 # Para calcular a área real, precisamos iterar sobre todas as peças em todos os planos únicos
                 area_real_pecas = 0
+                # --- INÍCIO: LÓGICA ESPECIAL PARA CÍRCULOS ---
+                area_bounding_box_pecas = 0
+                is_only_circles = all(id_peca_map[r['rid']].get('forma') == 'circle' for plano in planos_agrupados.values() for r in plano['plano'])
+
                 for plano in planos_agrupados.values():
-                    area_plano = sum(id_peca_map[r['rid']]['largura_sem_offset'] * id_peca_map[r['rid']]['altura_sem_offset'] for r in plano['plano'])
-                    area_real_pecas += area_plano * plano['repeticoes']
+                    for r in plano['plano']:
+                        peca_info = id_peca_map[r['rid']]
+                        if peca_info.get('forma') == 'circle':
+                            area_real_pecas += (math.pi * (peca_info['diametro'] / 2)**2) * plano['repeticoes']
+                        else:
+                            area_real_pecas += (peca_info['largura_sem_offset'] * peca_info['altura_sem_offset']) * plano['repeticoes']
+                        
+                        # Calcula a área do bounding box para a lógica de sucata
+                        area_bounding_box_pecas += (peca_info['largura_sem_offset'] * peca_info['altura_sem_offset']) * plano['repeticoes']
+                
+                # Define qual área de peça usar para o cálculo da sucata
+                area_pecas_para_sucata = area_bounding_box_pecas if is_only_circles else area_real_pecas
+                # --- FIM: LÓGICA ESPECIAL PARA CÍRCULOS ---
 
                 aproveitamento_geral = (area_real_pecas / area_total_chapas) * 100 if area_total_chapas > 0 else 0
 
@@ -377,8 +392,12 @@ def calcular_plano_de_corte_em_bins(pecas, offset, espessura, bins, peso_especif
                         sucatas_dimensionadas_detalhado.append(item)
 
             area_offset_total = melhor_solucao_iteracao['area_total_utilizada_com_offset'] - melhor_solucao_iteracao['area_real_pecas']
+            # --- CORREÇÃO: Ajusta o cálculo do offset para o caso especial de círculos ---
+            area_offset_total = melhor_solucao_iteracao['area_total_utilizada_com_offset'] - area_pecas_para_sucata
             area_demais_sucatas = melhor_solucao_iteracao['area_total_chapas'] - melhor_solucao_iteracao['area_real_pecas'] - total_area_sobra_aproveitavel - total_area_sobra_sucata - area_offset_total
+            # --- OTIMIZAÇÃO: Garante que a área de perda de processo nunca seja negativa ---
             area_demais_sucatas = max(0, area_demais_sucatas)
+            # --- FIM DA OTIMIZAÇÃO ---
 
             sucata_detalhada = {
                 "peso_offset": _calc_peso(area_offset_total),
